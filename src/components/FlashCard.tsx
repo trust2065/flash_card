@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Character } from '../data/lesson1'
-import './FlashCard.css'
 
 interface FlashCardProps {
   card: Character
@@ -14,49 +13,90 @@ export function FlashCard({ card, onFlip }: FlashCardProps) {
   const handleFlip = () => {
     setIsFlipped(!isFlipped)
     onFlip?.()
-    
-    // Play audio when flipped to back
-    if (!isFlipped) {
-      playAudio(card.char)
-    }
+    if (!isFlipped) playAudio(card.char)
   }
 
   const playAudio = (text: string) => {
     if (!('speechSynthesis' in window)) return
-    
-    // Cancel any ongoing speech
     window.speechSynthesis.cancel()
-    
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'zh-TW'
-    utterance.rate = 0.8 // Slightly slower for kids
+    utterance.rate = 0.8
     window.speechSynthesis.speak(utterance)
   }
 
+  const faceBase: React.CSSProperties = {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backfaceVisibility: 'hidden',
+    borderRadius: 40,
+    border: '1px solid rgba(255,255,255,0.08)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  }
+
   return (
-    <div className="flashcard-container" onClick={handleFlip}>
+    <div
+      className="w-full max-w-[480px] h-[50vh] min-h-[380px] my-8 mx-auto cursor-pointer"
+      style={{ perspective: '1200px' }}
+      onClick={handleFlip}
+    >
       <motion.div
-        className="flashcard-inner"
+        className="w-full h-full relative"
+        style={{ transformStyle: 'preserve-3d' }}
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       >
         {/* Front */}
-        <div className="flashcard-face flashcard-front">
-          <span className="flashcard-char">{card.char}</span>
-          <span className="flashcard-hint">點擊翻面</span>
+        <div
+          style={{
+            ...faceBase,
+            background: 'linear-gradient(145deg, #1a1833, #231f3a)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          }}
+        >
+          <span
+            className="font-char font-black leading-[1.1] text-fg"
+            style={{
+              fontSize: 160,
+              textShadow: '0 4px 16px rgba(124,106,255,0.35)',
+            }}
+          >
+            {card.char}
+          </span>
+          <span className="absolute bottom-5 text-sm text-fg/30 font-semibold tracking-[2px]">
+            點擊翻面
+          </span>
         </div>
 
         {/* Back */}
-        <div className="flashcard-face flashcard-back">
-          <div className="flashcard-header">
-            <span className="flashcard-char-small">{card.char}</span>
-            <button 
-              className="audio-btn" 
-              onClick={(e) => {
-                e.stopPropagation()
-                playAudio(card.char)
-              }}
+        <div
+          style={{
+            ...faceBase,
+            transform: 'rotateY(180deg)',
+            background: '#231f3a',
+            padding: 32,
+            justifyContent: 'flex-start',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          }}
+        >
+          {/* Header */}
+          <div
+            className="flex justify-between items-center mb-8 pb-3"
+            style={{ borderBottom: '2px dashed rgba(255,255,255,0.1)' }}
+          >
+            <span className="font-char text-[72px] font-bold leading-none text-primary">
+              {card.char}
+            </span>
+            <button
+              className="w-16 h-16 rounded-[28px] bg-primary text-white flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer"
+              style={{ boxShadow: '0 8px 24px rgba(124,106,255,0.35)' }}
+              onClick={(e) => { e.stopPropagation(); playAudio(card.char) }}
               aria-label="播放讀音"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
@@ -64,25 +104,26 @@ export function FlashCard({ card, onFlip }: FlashCardProps) {
               </svg>
             </button>
           </div>
-          
-          <div className="flashcard-details">
-            <div className="detail-row">
-              <span className="detail-label">注音</span>
-              <span className="detail-value zhuyin">{card.zhuyin}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">拼音</span>
-              <span className="detail-value">{card.pinyin}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">詞語</span>
-              <span className="detail-value example">{card.example}</span>
-              <button 
-                className="audio-btn small" 
-                onClick={(e) => {
-                  e.stopPropagation()
-                  playAudio(card.example)
-                }}
+
+          {/* Details */}
+          <div className="flex flex-col gap-5">
+            {[
+              { label: '注音', value: card.zhuyin, extra: 'font-char text-accent tracking-[4px]' },
+              { label: '拼音', value: card.pinyin, extra: '' },
+            ].map(({ label, value, extra }) => (
+              <div key={label} className="flex items-center text-2xl">
+                <span className="font-semibold text-fg/50 w-[60px] text-lg shrink-0">{label}</span>
+                <span className={`font-bold text-fg grow ${extra}`}>{value}</span>
+              </div>
+            ))}
+
+            {/* 詞語 row with audio */}
+            <div className="flex items-center text-2xl">
+              <span className="font-semibold text-fg/50 w-[60px] text-lg shrink-0">詞語</span>
+              <span className="font-bold text-success grow flex items-center">{card.example}</span>
+              <button
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-primary bg-primary/20 ml-3 cursor-pointer active:scale-90 transition-transform"
+                onClick={(e) => { e.stopPropagation(); playAudio(card.example) }}
                 aria-label="播放詞語"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
@@ -90,9 +131,10 @@ export function FlashCard({ card, onFlip }: FlashCardProps) {
                 </svg>
               </button>
             </div>
-            <div className="detail-row">
-              <span className="detail-label">意思</span>
-              <span className="detail-value meaning">{card.meaning}</span>
+
+            <div className="flex items-center text-2xl">
+              <span className="font-semibold text-fg/50 w-[60px] text-lg shrink-0">意思</span>
+              <span className="font-medium text-white/85 grow text-xl leading-snug">{card.meaning}</span>
             </div>
           </div>
         </div>

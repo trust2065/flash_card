@@ -1,76 +1,39 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Nunito:wght@600;700;800;900&display=swap');
 
-/* ─── Design Tokens ─────────────────────────────────────────── */
-:root {
+/* ─── Tailwind v4 Design Tokens ──────────────────────────────── */
+@theme {
   /* Colors */
-  --bg:          #0f0e17;
-  --bg-card:     #1a1833;
-  --bg-surface:  #231f3a;
-  --border:      rgba(255, 255, 255, 0.08);
+  --color-primary:  #7c6aff;
+  --color-accent:   #ff6b9d;
+  --color-success:  #3ecf8e;
+  --color-danger:   #ff5c7c;
+  --color-card:     #1a1833;
+  --color-surface:  #231f3a;
+  --color-fg:       #f2f0ff;
 
-  --primary:     #7c6aff;
-  --primary-glow:rgba(124, 106, 255, 0.35);
-  --accent:      #ff6b9d;
-  --accent-glow: rgba(255, 107, 157, 0.35);
-  --success:     #3ecf8e;
-  --success-glow:rgba(62, 207, 142, 0.35);
-  --danger:      #ff5c7c;
-  --danger-glow: rgba(255, 92, 124, 0.35);
-
-  --text:        #f2f0ff;
-  --text-muted:  rgba(242, 240, 255, 0.5);
-  --text-dim:    rgba(242, 240, 255, 0.3);
-
-  /* Typography */
-  --font-ui:     'Nunito', sans-serif;
-  --font-char:   'Noto Sans TC', sans-serif;
-
-  /* Sizes */
-  --radius-sm:   12px;
-  --radius-md:   20px;
-  --radius-lg:   28px;
-  --radius-xl:   40px;
-
-  /* Spacing */
-  --sp-xs:  8px;
-  --sp-sm:  12px;
-  --sp-md:  20px;
-  --sp-lg:  32px;
-  --sp-xl:  48px;
-
-  /* Shadows */
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 40px var(--primary-glow);
-
-  /* Touch targets */
-  --btn-min: 56px;
+  /* Font families */
+  --font-ui:        'Nunito', sans-serif;
+  --font-char:      'Noto Sans TC', sans-serif;
 }
 
-/* ─── Reset ─────────────────────────────────────────────────── */
+/* ─── Global non-utility styles ──────────────────────────────── */
 *, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
 html {
-  font-size: 16px;
   -webkit-text-size-adjust: 100%;
   height: 100%;
 }
 
 body {
   font-family: var(--font-ui);
-  background: var(--bg);
-  color: var(--text);
-  height: 100%;
   min-height: 100dvh;
   overflow-x: hidden;
-  /* subtle grain texture for depth */
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(124, 106, 255, 0.12) 0%, transparent 60%);
+  background-color: #0f0e17;
+  color: var(--color-fg);
+  background-image: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(124, 106, 255, 0.12) 0%, transparent 60%);
 }
 
 #root {
@@ -80,7 +43,12 @@ body {
   align-items: center;
 }
 
-/* ─── Utility classes ───────────────────────────────────────── */
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 9px; }
+
+/* sr-only utility */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -89,8 +57,3 @@ body {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-
-/* ─── Scrollbar ─────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9px; }

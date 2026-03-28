@@ -9,7 +9,6 @@ interface Props {
 const BUCKET_LABELS = ['初見', '認識中', '熟悉', '很熟', '精通']
 const MAX_BUCKET = 4
 
-// SVG circle progress — bucket 0-4
 function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string; zhuyin: string }) {
   const size = 96
   const stroke = 5
@@ -21,47 +20,31 @@ function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string
 
   return (
     <div className="relative w-24 h-24">
-      {/* SVG rotated so arc starts from top */}
       <svg
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         className="absolute inset-0 -rotate-90"
       >
-        {/* track */}
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="rgba(124,106,255,0.12)"
-          strokeWidth={stroke}
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke="rgba(124,106,255,0.15)" strokeWidth={stroke}
         />
-        {/* progress arc */}
         {bucket > 0 && (
           <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
+            cx={size / 2} cy={size / 2} r={r}
             fill="none"
-            stroke={isMastered ? '#7c6aff' : 'rgba(124,106,255,0.55)'}
+            stroke={isMastered ? '#7c6aff' : 'rgba(124,106,255,0.6)'}
             strokeWidth={stroke}
             strokeDasharray={`${dash} ${gap}`}
             strokeLinecap="round"
-            style={{ transition: 'stroke-dasharray 0.5s ease' }}
+            className="transition-[stroke-dasharray] duration-500 ease"
           />
         )}
       </svg>
-
-      {/* Inner content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-        <span
-          className="text-3xl font-bold leading-none text-white"
-          style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
-        >
-          {char}
-        </span>
-        <span className="text-[10px] text-white/40 tracking-tight">{zhuyin}</span>
+        <span className="font-char text-[1.9rem] font-bold text-fg leading-none">{char}</span>
+        <span className="text-[0.6rem] text-fg/40">{zhuyin}</span>
       </div>
     </div>
   )
@@ -78,69 +61,72 @@ export function ProgressScreen({ store, onClose }: Props) {
   const progressPct = Math.round((mastered / total) * 100)
 
   return (
-    <div className="w-full min-h-dvh flex flex-col items-center pb-14 overflow-y-auto">
+    <div className="w-full min-h-[100dvh] flex flex-col items-center pb-14">
 
       {/* Header */}
-      <div className="w-full max-w-2xl px-5 pt-10 pb-4 flex flex-col items-center relative">
+      <div className="w-full max-w-[680px] px-5 pt-10 pb-4 flex flex-col items-center relative">
         <button
           onClick={onClose}
-          className="absolute top-10 right-5 w-9 h-9 rounded-full border border-white/10 bg-white/5 text-white/40 text-sm flex items-center justify-center hover:bg-violet-500/20 hover:text-violet-400 hover:border-violet-500/40 transition-all cursor-pointer"
+          className="absolute top-10 right-5 w-9 h-9 rounded-full border border-white/10 bg-white/5 text-fg/40 text-[0.8rem] cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/10 hover:text-white hover:scale-110 active:scale-95"
         >
           ✕
         </button>
-        <h1
-          className="text-2xl font-black text-violet-400 mb-1"
-          style={{ fontFamily: "'Nunito', sans-serif" }}
-        >
+        <h1 className="font-ui text-[1.7rem] font-black text-primary mb-1 mt-0">
           學習成果
         </h1>
-        <p className="text-sm text-white/40">共 {total} 個字</p>
+        <p className="text-[0.85rem] text-fg/40 m-0">共 {total} 個字</p>
       </div>
 
       {/* Progress bar + stats */}
-      <div className="w-full max-w-2xl px-5 mb-6 flex flex-col gap-2">
-        <div className="h-2 rounded-full bg-violet-500/10 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-violet-500 transition-all duration-500"
+      <div className="w-[calc(100%-40px)] max-w-[680px] mb-6 flex flex-col gap-2.5">
+        <div className="h-2 rounded-full bg-primary/12 overflow-hidden">
+          <div 
+            className="h-full rounded-full bg-primary transition-all duration-600 ease"
             style={{ width: `${progressPct}%`, boxShadow: '0 0 12px rgba(124,106,255,0.5)' }}
           />
         </div>
-        <div className="flex items-center gap-4 text-xs text-white/50">
-          <span><strong className="text-violet-400 font-bold">{mastered}</strong> 精通</span>
-          <span><strong className="text-violet-400/60 font-bold">{learning}</strong> 學習中</span>
-          <span><strong className="text-white/30 font-bold">{unseen}</strong> 未見過</span>
-          <span className="ml-auto font-bold text-violet-400">{progressPct}%</span>
+        <div className="flex items-center gap-4">
+          <span className="text-[0.78rem] text-fg/50">
+            <strong className="text-primary font-bold">{mastered}</strong> 精通
+          </span>
+          <span className="text-[0.78rem] text-fg/50">
+            <strong className="text-primary/65 font-bold">{learning}</strong> 學習中
+          </span>
+          <span className="text-[0.78rem] text-fg/50">
+            <strong className="text-fg/30 font-bold">{unseen}</strong> 未見過
+          </span>
+          <span className="ml-auto text-[0.85rem] font-bold text-primary">
+            {progressPct}%
+          </span>
         </div>
       </div>
 
       {/* Card grid */}
-      <div className="w-full max-w-2xl px-5 grid gap-3"
-        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))' }}
-      >
+      <div className="w-[calc(100%-40px)] max-w-[680px] grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3.5">
         {lesson1.map((card) => {
           const bucket = store[card.char]?.bucket ?? 0
           const lastSeen = store[card.char]?.lastSeen
           const lastSeenStr = lastSeen
             ? new Date(lastSeen).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
             : '從未'
+          const isMastered = bucket === MAX_BUCKET
 
           return (
             <div
               key={card.char}
-              className={`
-                flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all duration-150
-                hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/10
-                ${bucket === MAX_BUCKET
-                  ? 'bg-violet-500/8 border-violet-500/30'
-                  : 'bg-white/3 border-white/8'
-                }
-              `}
+              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-[20px] transition-transform duration-150 cursor-default border ${
+                isMastered 
+                  ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:-translate-y-1 hover:shadow-lg shadow-black/20' 
+                  : 'border-white/[0.07] bg-white/[0.03] hover:bg-white/5 hover:-translate-y-1 hover:shadow-lg shadow-black/20'
+              }`}
             >
               <CircleProgress bucket={bucket} char={card.char} zhuyin={card.zhuyin} />
-              <span className="text-[11px] font-bold text-violet-400/80">
+              <span className={`text-[0.72rem] font-bold ${isMastered ? 'text-primary' : 'text-primary/85'}`}>
                 {BUCKET_LABELS[bucket]}
               </span>
-              <span className="text-[10px] text-white/25">上次：{lastSeenStr}</span>
+              <span className="text-[0.6rem] text-fg/25">
+                上次：{lastSeenStr}
+              </span>
             </div>
           )
         })}
