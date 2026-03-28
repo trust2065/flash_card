@@ -95,10 +95,19 @@ export function useSpacedRepetition() {
     setStats({ known: 0, unknown: 0, total: 0 })
   }, [])
 
+  const resetData = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    setStore({})
+    const freshQueue = buildQueue({})
+    setQueue(freshQueue)
+    setIndex(0)
+    setStats({ known: 0, unknown: 0, total: 0 })
+  }, [])
+
   const getBucket = useCallback(
     (char: string) => (store[char]?.bucket ?? 0),
     [store],
   )
 
-  return { current, isFinished, stats, answer, restart, getBucket, queueLength: queue.length }
+  return { current, isFinished, stats, answer, restart, resetData, getBucket, queueLength: queue.length }
 }
