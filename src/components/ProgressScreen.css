@@ -1,0 +1,193 @@
+.progress-screen {
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 56px;
+  overflow-y: auto;
+}
+
+/* ─── Header ─── */
+.progress-header {
+  width: 100%;
+  max-width: 680px;
+  padding: var(--sp-lg) var(--sp-md) var(--sp-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.progress-close {
+  position: absolute;
+  top: var(--sp-lg);
+  right: var(--sp-md);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.progress-close:hover {
+  background: rgba(124, 106, 255, 0.15);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.progress-title {
+  font-family: var(--font-ui);
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.progress-subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ─── Overall bar ─── */
+.overall-wrap {
+  width: calc(100% - var(--sp-md) * 2);
+  max-width: 680px;
+  margin-bottom: var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.overall-bar-bg {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(124, 106, 255, 0.12);
+  overflow: hidden;
+}
+
+.overall-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--primary);
+  transition: width 0.6s ease;
+  box-shadow: 0 0 12px rgba(124, 106, 255, 0.5);
+}
+
+.overall-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.os-item {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.os-item strong {
+  font-weight: 700;
+}
+
+.os-mastered strong { color: var(--primary); }
+.os-learning strong { color: rgba(124, 106, 255, 0.6); }
+.os-unseen strong  { color: var(--text-dim); }
+
+.os-pct {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* ─── Card grid ─── */
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+  width: calc(100% - var(--sp-md) * 2);
+  max-width: 680px;
+}
+
+.progress-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-sm) var(--sp-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.progress-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(124, 106, 255, 0.15);
+}
+
+.progress-card.mastered {
+  border-color: rgba(124, 106, 255, 0.3);
+  background: rgba(124, 106, 255, 0.06);
+}
+
+/* ─── Circle progress ─── */
+.pc-circle-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.pc-svg {
+  position: absolute;
+  inset: 0;
+  /* rotate so arc starts from top */
+  transform: rotate(-90deg);
+}
+
+/* compensate the SVG rotation for the arc start */
+.pc-progress-arc {
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.pc-circle-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.pc-char {
+  font-family: var(--font-char);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.pc-zhuyin {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+}
+
+.pc-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+.pc-last-seen {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}

@@ -34,6 +34,34 @@
   color: #ffffff;
 }
 
+.progress-toggle-button {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(124, 106, 255, 0.15);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.progress-toggle-button:hover {
+  background-color: rgba(124, 106, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.app-container.scrollable {
+  overflow-y: auto;
+  position: relative;
+}
+
 .loading-screen {
   width: 100vw;
   height: 100vh;

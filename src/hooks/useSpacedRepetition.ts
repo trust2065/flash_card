@@ -13,7 +13,7 @@ interface CardState {
   lastSeen: number
 }
 
-type SRStore = Record<string, CardState>
+export type SRStore = Record<string, CardState>
 
 interface ProgressRow {
   char: string
@@ -178,6 +178,7 @@ export function useSpacedRepetition() {
     current,
     isFinished,
     stats,
+    store,
     answer,
     restart,
     resetData,

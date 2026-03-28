@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { StudySession } from './components/StudySession'
 import { ResultScreen } from './components/ResultScreen'
+import { ProgressScreen } from './components/ProgressScreen'
 import { useSpacedRepetition } from './hooks/useSpacedRepetition'
 import './App.css'
 
 function App() {
   const sr = useSpacedRepetition()
+  const [showProgress, setShowProgress] = useState(false)
 
   if (sr.isLoading) {
     return <div className="loading-screen">同步雲端資料中...</div>
@@ -20,6 +23,15 @@ function App() {
     }
   }
 
+  if (showProgress) {
+    return (
+      <main className="app-container scrollable">
+        <ProgressScreen store={sr.store} onClose={() => setShowProgress(false)} />
+        <button onClick={handleReset} className="reset-button">重置</button>
+      </main>
+    )
+  }
+
   return (
     <main className="app-container">
       {sr.isFinished ? (
@@ -27,11 +39,16 @@ function App() {
       ) : (
         <StudySession sr={sr} onFinish={() => {}} />
       )}
-      
-      <button 
-        onClick={handleReset}
-        className="reset-button"
+
+      <button
+        onClick={() => setShowProgress(true)}
+        className="progress-toggle-button"
+        aria-label="查看學習成果"
       >
+        📊
+      </button>
+
+      <button onClick={handleReset} className="reset-button">
         重置
       </button>
     </main>
