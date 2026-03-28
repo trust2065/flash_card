@@ -4,32 +4,37 @@
 - [x] Discuss learning approach with user
 - [x] Confirm textbook (康軒) and lesson characters
 - [x] Fetch pronunciation data from Moedict API
-- [/] Find relevant skills
-- [ ] Write implementation plan
-- [ ] Get user approval
+- [x] Find relevant skills (web-design-guidelines installed)
+- [x] Write implementation plan
+- [x] Get user approval
 
 ## Setup
-- [ ] Create Vite + React project in scratch
-- [ ] Configure as PWA (vite-plugin-pwa)
-- [ ] Set up project structure
+- [x] Create Vite + React project
+- [x] Install deps: framer-motion, vite-plugin-pwa, workbox-window
+- [x] Configure as PWA (vite.config.ts done, icons TODO)
+- [x] Set up project structure (src/data, src/hooks, src/components)
 
 ## Core Features - Lesson 1
-- [ ] Flashcard data for 9 characters + 1 word (拍手)
-- [ ] Flip animation (CSS 3D)
-- [ ] Front: large character
-- [ ] Back: ㄅㄆㄇ phonetic + Web Speech API audio + example word
-- [ ] Know / Don't Know buttons
+- [x] `src/data/lesson1.ts` — 10 characters data
+- [x] `src/hooks/useSpacedRepetition.ts` — bucket SR + localStorage
+- [x] `src/components/FlashCard.tsx` — flip animation
+  - [x] Front: large character (160px)
+  - [x] Back: ㄅㄆㄇ phonetic + Web Speech API + example word
+- [x] `src/components/StudySession.tsx` — progress bar + Know/Don't Know
+- [x] `src/components/ResultScreen.tsx` — star animation + stats
+- [x] `src/App.tsx` — state machine: study | result
 
-## Spaced Repetition
-- [ ] Simple SM-2 or bucket system
-- [ ] Persist progress to localStorage
+## Design
+- [x] `src/index.css` — design tokens, dark theme, typography
+- [x] iPad touch-optimized (min 44px targets, large buttons)
+- [x] Kid-friendly visual rewards
 
-## Polish & PWA
-- [ ] iPad-optimized touch UI (large buttons)
-- [ ] Install as PWA (manifest + service worker)
-- [ ] Kid-friendly visual rewards
+## PWA
+- [x] vite.config.ts with VitePWA plugin
+- [ ] public/icons/icon-192.png + icon-512.png
 
 ## Verification
+- [ ] npm run dev — local smoke test
+- [ ] Test PWA install + manifest
+- [ ] Test Web Speech API
 - [ ] Test on iPad Safari
-- [ ] Test PWA install
-- [ ] Test speech synthesis
