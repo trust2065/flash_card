@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Nunito:wght@600;700;800;900&display=swap');
+@import "tailwindcss";
 
 /* ─── Tailwind v4 Design Tokens ──────────────────────────────── */
 @theme {

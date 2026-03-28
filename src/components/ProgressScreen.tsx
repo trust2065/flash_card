@@ -19,12 +19,10 @@ function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string
   const isMastered = bucket === MAX_BUCKET
 
   return (
-    <div className="relative w-24 h-24">
+    <div className="relative w-24 h-24 shrink-0">
       <svg
-        width={size}
-        height={size}
         viewBox={`0 0 ${size} ${size}`}
-        className="absolute inset-0 -rotate-90"
+        className="absolute inset-0 w-full h-full"
       >
         <circle
           cx={size / 2} cy={size / 2} r={r}
@@ -38,7 +36,8 @@ function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string
             strokeWidth={stroke}
             strokeDasharray={`${dash} ${gap}`}
             strokeLinecap="round"
-            className="transition-[stroke-dasharray] duration-500 ease"
+            className="transition-all duration-500 ease"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
           />
         )}
       </svg>
