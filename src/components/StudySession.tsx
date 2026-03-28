@@ -29,7 +29,7 @@ export function StudySession({ sr, onFinish }: StudySessionProps) {
       </div>
 
       <div className="card-area">
-        <FlashCard card={current} />
+        <FlashCard key={current.char} card={current} />
       </div>
 
       <div className="controls">

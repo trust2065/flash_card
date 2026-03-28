@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Character } from '../data/lesson1'
 import './FlashCard.css'
@@ -10,11 +10,6 @@ interface FlashCardProps {
 
 export function FlashCard({ card, onFlip }: FlashCardProps) {
   const [isFlipped, setIsFlipped] = useState(false)
-
-  // Reset flip state when card changes
-  useEffect(() => {
-    setIsFlipped(false)
-  }, [card])
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped)

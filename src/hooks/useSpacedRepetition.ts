@@ -1,20 +1,27 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { lesson1, type Character } from '../data/lesson1'
+import { supabase } from '../lib/supabase'
 
 // Bucket system: 0-4, higher = appears less frequently
-// Weights: bucket 0 = 8x, 1 = 4x, 2 = 2x, 3 = 1x, 4 = 0.5x (every other session)
 const BUCKET_WEIGHTS = [8, 4, 2, 1, 1]
 const MAX_BUCKET = 4
+const USER_ID = 'default-kid'
 const STORAGE_KEY = 'flashcard-sr-v1'
 
 interface CardState {
   bucket: number
-  lastSeen: number // timestamp
+  lastSeen: number
 }
 
 type SRStore = Record<string, CardState>
 
-function loadStore(): SRStore {
+interface ProgressRow {
+  char: string
+  bucket: number
+  last_seen: string
+}
+
+function loadLocalStore(): SRStore {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
   } catch {
@@ -22,16 +29,14 @@ function loadStore(): SRStore {
   }
 }
 
-function saveStore(store: SRStore) {
+function saveLocalStore(store: SRStore) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
 }
 
 function buildQueue(store: SRStore): Character[] {
-  // Expand deck based on bucket weights
   const queue: Character[] = []
   for (const card of lesson1) {
     const state = store[card.char] ?? { bucket: 0, lastSeen: 0 }
-    // Bucket 4 only appears every other session (skip if lastSeen within 12h)
     if (state.bucket === MAX_BUCKET) {
       const hoursAgo = (Date.now() - state.lastSeen) / 3_600_000
       if (hoursAgo < 12) continue
@@ -39,12 +44,10 @@ function buildQueue(store: SRStore): Character[] {
     const weight = BUCKET_WEIGHTS[state.bucket]
     for (let i = 0; i < weight; i++) queue.push(card)
   }
-  // Fisher-Yates shuffle
   for (let i = queue.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[queue[i], queue[j]] = [queue[j], queue[i]]
   }
-  // Cap session at 20 cards
   return queue.slice(0, 20)
 }
 
@@ -54,28 +57,87 @@ export interface SRStats {
   total: number
 }
 
+const isCloudEnabled = supabase !== null
+
 export function useSpacedRepetition() {
-  const [store, setStore] = useState<SRStore>(loadStore)
-  const [queue, setQueue] = useState<Character[]>(() => buildQueue(loadStore()))
+  // Only show loading spinner if cloud is configured
+  const [isLoading, setIsLoading] = useState(isCloudEnabled)
+  const [store, setStore] = useState<SRStore>(() => (isCloudEnabled ? {} : loadLocalStore()))
+  const [queue, setQueue] = useState<Character[]>(() =>
+    isCloudEnabled ? [] : buildQueue(loadLocalStore()),
+  )
   const [index, setIndex] = useState(0)
   const [stats, setStats] = useState<SRStats>({ known: 0, unknown: 0, total: 0 })
 
+  const loadFromCloud = useCallback(async () => {
+    if (!supabase) return
+    setIsLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('flashcard_progress')
+        .select('char, bucket, last_seen')
+        .eq('user_id', USER_ID)
+
+      if (error) throw error
+
+      const nextStore: SRStore = {}
+      ;(data as unknown as ProgressRow[])?.forEach((row) => {
+        nextStore[row.char] = {
+          bucket: row.bucket,
+          lastSeen: new Date(row.last_seen).getTime(),
+        }
+      })
+
+      setStore(nextStore)
+      setQueue(buildQueue(nextStore))
+    } catch (err) {
+      console.warn('Cloud load failed, falling back to localStorage:', err)
+      const local = loadLocalStore()
+      setStore(local)
+      setQueue(buildQueue(local))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isCloudEnabled) {
+      loadFromCloud()
+    }
+  }, [loadFromCloud])
+
   const current = queue[index] ?? null
-  const isFinished = index >= queue.length
+  // Only finished if queue actually has cards and we've gone through them all
+  const isFinished = !isLoading && queue.length > 0 && index >= queue.length
 
   const answer = useCallback(
-    (known: boolean) => {
+    async (known: boolean) => {
       if (!current) return
 
-      setStore((prev) => {
-        const state = prev[current.char] ?? { bucket: 0, lastSeen: 0 }
-        const newBucket = known
-          ? Math.min(state.bucket + 1, MAX_BUCKET)
-          : 0
-        const next = { ...prev, [current.char]: { bucket: newBucket, lastSeen: Date.now() } }
-        saveStore(next)
-        return next
-      })
+      const state = store[current.char] ?? { bucket: 0, lastSeen: 0 }
+      const newBucket = known ? Math.min(state.bucket + 1, MAX_BUCKET) : 0
+      const lastSeen = Date.now()
+
+      if (supabase) {
+        try {
+          await supabase.from('flashcard_progress').upsert(
+            {
+              user_id: USER_ID,
+              char: current.char,
+              bucket: newBucket,
+              last_seen: new Date(lastSeen).toISOString(),
+            },
+            { onConflict: 'user_id,char' },
+          )
+        } catch (err) {
+          console.warn('Cloud save failed, saving locally:', err)
+        }
+      }
+
+      // Always write to localStorage as a backup / offline cache
+      const nextStore = { ...store, [current.char]: { bucket: newBucket, lastSeen } }
+      saveLocalStore(nextStore)
+      setStore(nextStore)
 
       setStats((prev) => ({
         known: prev.known + (known ? 1 : 0),
@@ -85,29 +147,41 @@ export function useSpacedRepetition() {
 
       setIndex((i) => i + 1)
     },
-    [current],
+    [current, store],
   )
 
   const restart = useCallback(() => {
-    const freshStore = loadStore()
-    setQueue(buildQueue(freshStore))
+    setQueue(buildQueue(store))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
-  }, [])
+  }, [store])
 
-  const resetData = useCallback(() => {
+  const resetData = useCallback(async () => {
+    if (supabase) {
+      try {
+        await supabase.from('flashcard_progress').delete().eq('user_id', USER_ID)
+      } catch (err) {
+        console.warn('Cloud reset failed:', err)
+      }
+    }
     localStorage.removeItem(STORAGE_KEY)
     setStore({})
-    const freshQueue = buildQueue({})
-    setQueue(freshQueue)
+    setQueue(buildQueue({}))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
   }, [])
 
-  const getBucket = useCallback(
-    (char: string) => (store[char]?.bucket ?? 0),
-    [store],
-  )
+  const getBucket = useCallback((char: string) => store[char]?.bucket ?? 0, [store])
 
-  return { current, isFinished, stats, answer, restart, resetData, getBucket, queueLength: queue.length }
+  return {
+    isLoading,
+    current,
+    isFinished,
+    stats,
+    answer,
+    restart,
+    resetData,
+    getBucket,
+    queueLength: queue.length,
+  }
 }

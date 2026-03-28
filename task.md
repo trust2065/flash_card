@@ -16,7 +16,7 @@
 
 ## Core Features - Lesson 1
 - [x] `src/data/lesson1.ts` — 10 characters data
-- [x] `src/hooks/useSpacedRepetition.ts` — bucket SR + localStorage
+- [x] `src/hooks/useSpacedRepetition.ts` — bucket SR + Supabase Cloud
 - [x] `src/components/FlashCard.tsx` — flip animation
   - [x] Front: large character (160px)
   - [x] Back: ㄅㄆㄇ phonetic + Web Speech API + example word

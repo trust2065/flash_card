@@ -13,3 +13,34 @@
   bottom: 0;
   overflow: hidden;
 }
+
+.reset-button {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #a0a0a0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.reset-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.loading-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  background-color: #0f172a;
+}
