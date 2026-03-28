@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { StudySession } from './components/StudySession'
 import { ResultScreen } from './components/ResultScreen'
 import { ProgressScreen } from './components/ProgressScreen'
+import { ResetModal } from './components/ResetModal'
 import { useSpacedRepetition } from './hooks/useSpacedRepetition'
 
 function App() {
   const sr = useSpacedRepetition()
   const [showProgress, setShowProgress] = useState(false)
+  const [showResetModal, setShowResetModal] = useState(false)
 
   if (sr.isLoading) {
     return (
@@ -16,13 +18,11 @@ function App() {
     )
   }
 
-  const handleReset = () => {
-    const password = prompt('請輸入密碼以重置學習紀錄：')
+  const handleResetConfirm = async (password: string) => {
     if (password === '1234') {
-      sr.resetData()
-      alert('重置成功！')
-    } else if (password !== null) {
-      alert('密碼錯誤！')
+      return true
+    } else {
+      return false
     }
   }
 
@@ -53,11 +53,25 @@ function App() {
 
       {/* Reset button */}
       <button
-        onClick={handleReset}
+        onClick={() => setShowResetModal(true)}
         className="absolute bottom-6 right-6 px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] z-50 transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer"
       >
         重置
       </button>
+
+      {/* Reset Modal */}
+      {showResetModal && (
+        <ResetModal
+          onClose={(didReset) => {
+            setShowResetModal(false)
+            if (didReset) {
+              sr.resetData()
+              setShowProgress(false) // Exit progress screen if open
+            }
+          }}
+          onConfirm={handleResetConfirm}
+        />
+      )}
     </main>
   )
 }
