@@ -1,73 +1,86 @@
-# React + TypeScript + Vite
+# Chinese Flashcard PWA (康軒一上)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live Demo & URL:** [https://flash-card-mu-ruddy.vercel.app/](https://flash-card-mu-ruddy.vercel.app/)
 
-Currently, two official plugins are available:
+A Progressive Web Application (PWA) designed to help first-grade students learn Chinese characters using Spaced Repetition. Optimised for iPad and touch screens, featuring a kid-friendly UI, interactive flashcard animations, and cloud progress syncing.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Currently focused on Lesson 1 characters from the Kang Hsuan (康軒) textbook.
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Spaced Repetition System (SRS)**: Employs a bucket-based spaced repetition algorithm to ensure optimal learning and retention.
+- **PWA Ready**: Installable on iOS/iPadOS and Android directly from the browser for a native-like full-screen experience and offline capabilities.
+- **iPad & Touch Optimised**: Large touch targets, intuitive swipe/tap gestures, and kid-friendly layout.
+- **Cloud Sync**: Securely syncs learning progress using Supabase, so students can switch between devices without losing their data.
+- **Text-to-Speech (TTS)**: Uses Web Speech API to read Chinese characters and examples aloud.
+- **Interactive Animations**: Beautiful 3D card flip effects powered by Framer Motion. 
+- **Bopomofo (Zhuyin) Support**: Displays standard Taiwanese phonetic symbols alongside characters.
 
-## Expanding the ESLint configuration
+## 🛠 Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Framework**: React 19 + TypeScript + Vite
+- **Styling**: Tailwind CSS v4
+- **Animations**: Framer Motion
+- **Backend / Database**: Supabase
+- **PWA**: vite-plugin-pwa (Workbox)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🚀 Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
+- Node.js (v18+ recommended)
+- A Supabase account and project (for cloud sync)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd flash_card
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   Duplicate the `.env sample` file (if provided) or create a `.env` file in the root directory and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+   *(See `CLOUD_SETUP.md` for detailed Supabase configuration instructions)*
+
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   The application will be available at `http://localhost:5173`.
+
+### Building for Production
+
+To create a production build with PWA assets generated:
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+To preview the production build locally:
+```bash
+npm run preview
 ```
+
+## 📱 PWA Installation (iPad / iPhone)
+
+1. Open the website in **Safari**.
+2. Tap the **Share** button (box with an arrow pointing up).
+3. Scroll down and tap **Add to Home Screen**.
+4. The application will now appear on your home screen and run in full-screen mode like a native app.
+
+## 🗂 Project Structure
+- `src/components/`: Reusable UI components (`FlashCard`, `StudySession`, `ResultScreen`, etc.)
+- `src/hooks/`: Custom React hooks, including `useSpacedRepetition` for SRS logic and Supabase sync.
+- `src/data/`: Static data for lessons (e.g., `lesson1.ts` containing the vocabulary list).
+- `public/`: Static assets, including PWA icons.
+
+## 📝 License
+This project is for educational purposes.
