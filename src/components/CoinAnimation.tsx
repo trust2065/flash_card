@@ -4,7 +4,6 @@ import { motion, useAnimation } from 'framer-motion';
 // 使用 Web Audio API 來達成零延遲、完美的重疊播放
 let audioCtx: AudioContext | null = null;
 let coinBuffer: AudioBuffer | null = null;
-let isFetching = false;
 let fetchPromise: Promise<void> | null = null;
 
 // 預先載入音檔
