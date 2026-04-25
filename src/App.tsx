@@ -1,120 +1,120 @@
-import { useState, useEffect } from 'react'
-import Confetti from 'react-confetti'
-import { useWindowSize } from 'react-use'
-import { StudySession } from './components/StudySession'
-import { ResultScreen } from './components/ResultScreen'
-import { ProgressScreen } from './components/ProgressScreen'
-import { ResetModal } from './components/ResetModal'
-import { useSpacedRepetition } from './hooks/useSpacedRepetition'
-import { CoinAnimation } from './components/CoinAnimation'
-import { lesson1 } from './data/lesson1'
-import { lesson2 } from './data/lesson2'
+import { useState, useEffect } from 'react';
+import Confetti from 'react-confetti';
+import { useWindowSize } from 'react-use';
+import { StudySession } from './components/StudySession';
+import { ResultScreen } from './components/ResultScreen';
+import { ProgressScreen } from './components/ProgressScreen';
+import { ResetModal } from './components/ResetModal';
+import { useSpacedRepetition } from './hooks/useSpacedRepetition';
+import { CoinAnimation } from './components/CoinAnimation';
+import { lesson1 } from './data/lesson1';
+import { lesson2 } from './data/lesson2';
 
 function App() {
-  const { width, height } = useWindowSize()
-  const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1')
+  const { width, height } = useWindowSize();
+  const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1');
 
   const cards =
     selectedLesson === '1' ? lesson1
-    : selectedLesson === '2' ? lesson2
-    : [...lesson1, ...lesson2]
+      : selectedLesson === '2' ? lesson2
+        : [...lesson1, ...lesson2];
 
-  const sr = useSpacedRepetition(cards)
-  const [showProgress, setShowProgress] = useState(false)
-  const [showResetModal, setShowResetModal] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const sr = useSpacedRepetition(cards);
+  const [showProgress, setShowProgress] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showTestConfetti, setShowTestConfetti] = useState(false);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  }, [])
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   // 切換課程時自動重置 queue
   useEffect(() => {
-    sr.restart()
+    sr.restart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLesson])
+  }, [selectedLesson]);
 
 
   // 監聽連續答對與升級狀態來觸發金幣動畫
   useEffect(() => {
-    let coinCount = 0
+    let coinCount = 0;
 
     // 1. 處理連續答對獎勵
     if (sr.streak > 0) {
       if (sr.streak % 10 === 0) {
-        coinCount = 3 // 每 10 題給 3 顆
+        coinCount = 3; // 每 10 題給 3 顆
       } else if (sr.streak % 5 === 0) {
-        coinCount = 1 // 每 5 題給 1 顆
+        coinCount = 1; // 每 5 題給 1 顆
       }
     }
 
-    let timeoutId: NodeJS.Timeout
+    let timeoutId: NodeJS.Timeout;
 
     // 2. 處理滿級獎勵（若同時觸發，取最大值給獎勵即可，或依照你的需求疊加）
     if (sr.showMaxLevelReward) {
-      coinCount = Math.max(coinCount, 3) // 滿級至少給 3 顆
-      
+      coinCount = Math.max(coinCount, 3); // 滿級至少給 3 顆
+
       // 3 秒後自動隱藏 Confetti
       timeoutId = setTimeout(() => {
-        sr.setShowMaxLevelReward(false)
-      }, 3000)
+        sr.setShowMaxLevelReward(false);
+      }, 3000);
     }
 
     if (coinCount > 0) {
-      ;(window as any).testCoins?.(coinCount)
+      ; (window as any).testCoins?.(coinCount);
     }
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [sr.streak, sr.showMaxLevelReward, sr.setShowMaxLevelReward])
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [sr.streak, sr.showMaxLevelReward, sr.setShowMaxLevelReward]);
 
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
       try {
-        await document.documentElement.requestFullscreen()
+        await document.documentElement.requestFullscreen();
       } catch (err) {
-        console.error("Error attempting to enable fullscreen:", err)
+        console.error("Error attempting to enable fullscreen:", err);
       }
     } else {
       if (document.exitFullscreen) {
-        await document.exitFullscreen()
+        await document.exitFullscreen();
       }
     }
-  }
+  };
 
   if (sr.isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a] text-slate-400 text-2xl">
         同步雲端資料中...
       </div>
-    )
+    );
   }
 
   const handleResetConfirm = async (password: string) => {
     if (password === '1234') {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
-  }
+  };
 
   return (
     <main
-      className={`fixed inset-0 flex flex-col items-center ${
-        showProgress ? 'overflow-y-auto' : 'overflow-hidden'
-      }`}
+      className={`fixed inset-0 flex flex-col items-center ${showProgress ? 'overflow-y-auto' : 'overflow-hidden'
+        }`}
     >
       {showProgress ? (
         <ProgressScreen store={sr.store} cards={cards} onClose={() => setShowProgress(false)} />
       ) : sr.isFinished ? (
         <ResultScreen stats={sr.stats} onRestart={sr.restart} />
       ) : (
-        <StudySession sr={sr} onFinish={() => {}} />
+        <StudySession sr={sr} onFinish={() => { }} />
       )}
 
       {/* 📊 progress toggle — hidden when already on progress page */}
@@ -135,11 +135,10 @@ function App() {
             <button
               key={l}
               onClick={() => setSelectedLesson(l)}
-              className={`px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 cursor-pointer ${
-                selectedLesson === l
-                  ? 'bg-primary/40 border-primary/60 text-white font-bold'
-                  : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/80'
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 cursor-pointer ${selectedLesson === l
+                ? 'bg-primary/40 border-primary/60 text-white font-bold'
+                : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/80'
+                }`}
             >
               {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
             </button>
@@ -150,7 +149,10 @@ function App() {
 
       {/* Test Confetti button */}
       <button
-        onClick={() => sr.setShowMaxLevelReward(true)}
+        onClick={() => {
+          setShowTestConfetti(true);
+          setTimeout(() => setShowTestConfetti(false), 8000);
+        }}
         className="absolute bottom-[4.5rem] right-6 px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] z-50 transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer"
       >
         測試彩屑
@@ -168,10 +170,10 @@ function App() {
       {showResetModal && (
         <ResetModal
           onClose={(didReset) => {
-            setShowResetModal(false)
+            setShowResetModal(false);
             if (didReset) {
-              sr.resetData()
-              setShowProgress(false) // Exit progress screen if open
+              sr.resetData();
+              setShowProgress(false); // Exit progress screen if open
             }
           }}
           onConfirm={handleResetConfirm}
@@ -191,20 +193,20 @@ function App() {
         )}
       </button>
       <CoinAnimation />
-      
-      {sr.showMaxLevelReward && (
+
+      {(sr.showMaxLevelReward || showTestConfetti) && (
         <div className="pointer-events-none fixed inset-0 z-50">
-          <Confetti 
-            width={width} 
-            height={height} 
-            recycle={false} 
+          <Confetti
+            width={width}
+            height={height}
+            recycle={false}
             numberOfPieces={200}
             gravity={0.15}
           />
         </div>
       )}
     </main>
-  )
+  );
 }
 
-export default App
+export default App;
