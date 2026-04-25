@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import Confetti from 'react-confetti'
+import { useWindowSize } from 'react-use'
 import { StudySession } from './components/StudySession'
 import { ResultScreen } from './components/ResultScreen'
 import { ProgressScreen } from './components/ProgressScreen'
@@ -9,6 +11,7 @@ import { lesson1 } from './data/lesson1'
 import { lesson2 } from './data/lesson2'
 
 function App() {
+  const { width, height } = useWindowSize()
   const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1')
 
   const cards =
@@ -49,14 +52,24 @@ function App() {
       }
     }
 
+    let timeoutId: NodeJS.Timeout
+
     // 2. 處理滿級獎勵（若同時觸發，取最大值給獎勵即可，或依照你的需求疊加）
     if (sr.showMaxLevelReward) {
       coinCount = Math.max(coinCount, 3) // 滿級至少給 3 顆
-      sr.setShowMaxLevelReward(false) // 觸發後重置
+      
+      // 3 秒後自動隱藏 Confetti
+      timeoutId = setTimeout(() => {
+        sr.setShowMaxLevelReward(false)
+      }, 3000)
     }
 
     if (coinCount > 0) {
       ;(window as any).testCoins?.(coinCount)
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
     }
   }, [sr.streak, sr.showMaxLevelReward, sr.setShowMaxLevelReward])
 
@@ -135,6 +148,14 @@ function App() {
       )}
 
 
+      {/* Test Confetti button */}
+      <button
+        onClick={() => sr.setShowMaxLevelReward(true)}
+        className="absolute bottom-[4.5rem] right-6 px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] z-50 transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer"
+      >
+        測試彩屑
+      </button>
+
       {/* Reset button */}
       <button
         onClick={() => setShowResetModal(true)}
@@ -170,6 +191,18 @@ function App() {
         )}
       </button>
       <CoinAnimation />
+      
+      {sr.showMaxLevelReward && (
+        <div className="pointer-events-none fixed inset-0 z-50">
+          <Confetti 
+            width={width} 
+            height={height} 
+            recycle={false} 
+            numberOfPieces={200}
+            gravity={0.15}
+          />
+        </div>
+      )}
     </main>
   )
 }
