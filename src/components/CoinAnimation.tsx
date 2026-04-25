@@ -1,6 +1,55 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 
+// 使用 Web Audio API 來達成零延遲、完美的重疊播放
+let audioCtx: AudioContext | null = null;
+let coinBuffer: AudioBuffer | null = null;
+let isFetching = false;
+let fetchPromise: Promise<void> | null = null;
+
+// 預先載入音檔
+export async function initCoinAudio() {
+  if (typeof window === 'undefined') return;
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
+  if (!coinBuffer) {
+    if (!fetchPromise) {
+      fetchPromise = (async () => {
+        try {
+          const response = await fetch('/coin_new.wav');
+          const arrayBuffer = await response.arrayBuffer();
+          coinBuffer = await audioCtx!.decodeAudioData(arrayBuffer);
+        } catch (e) {
+          console.error("Failed to load audio", e);
+        }
+      })();
+    }
+    await fetchPromise;
+  }
+}
+
+async function playCoinSound() {
+  if (typeof window === 'undefined') return;
+
+  // 確保初始化完成且如果被 suspend 則喚醒
+  await initCoinAudio();
+
+  if (!coinBuffer || !audioCtx) return;
+
+  const source = audioCtx.createBufferSource();
+  source.buffer = coinBuffer;
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 0.5;
+
+  source.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  source.start(0);
+}
+
 interface Coin {
   id: string;
   offsetX: number;
@@ -102,30 +151,31 @@ export function CoinAnimation() {
 
   const addCoins = useCallback((count: number) => {
     const newCoins = Array.from({ length: count }).map((_, i) => {
-      // 計算偏移量，讓多顆金幣一起出現時能有層次感（錯開位置）
       const offsetX = count > 1 ? (Math.random() - 0.5) * 40 : 0;
       const offsetY = count > 1 ? (i - (count - 1) / 2) * 50 : 0;
       return {
         id: Math.random().toString(),
         offsetX,
         offsetY,
-        dropDelay: i * 0.15 // 依序掉落的延遲
+        dropDelay: i * 0.1
       };
     });
     setCoins(prev => [...prev, ...newCoins]);
+
+    // 音效在這裡直接排程，不依賴動畫 callback
+    // 滑入 1.5s + 各自 dropDelay (i*0.1s) + 掉落動畫 0.5s
+    newCoins.forEach((_, i) => {
+      const delay = 1500 + i * 200 + 500;
+      setTimeout(() => {
+        playCoinSound();
+        setBucketShake(true);
+        setTimeout(() => setBucketShake(false), 200);
+      }, delay);
+    });
   }, []);
 
+  // onDropInBucket 不再播音效，只需晃桶子（音效由 addCoins 排程）
   const handleDropInBucket = useCallback(() => {
-    // 播放音效
-    try {
-      const audio = new Audio('/coin_new.wav');
-      audio.volume = 0.5;
-      audio.play();
-    } catch (e) {
-      console.error("Audio play failed", e);
-    }
-
-    // 晃動桶子
     setBucketShake(true);
     setTimeout(() => setBucketShake(false), 200);
   }, []);

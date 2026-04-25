@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { lesson1, type Character } from '../data/lesson1'
+import type { Character } from '../data/lesson1'
 import { supabase } from '../lib/supabase'
 
 // Bucket system: 0-4, higher = appears less frequently
@@ -33,9 +33,9 @@ function saveLocalStore(store: SRStore) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
 }
 
-function buildQueue(store: SRStore): Character[] {
+function buildQueue(store: SRStore, cards: Character[]): Character[] {
   const queue: Character[] = []
-  for (const card of lesson1) {
+  for (const card of cards) {
     const state = store[card.char] ?? { bucket: 0, lastSeen: 0 }
     if (state.bucket === MAX_BUCKET) {
       const hoursAgo = (Date.now() - state.lastSeen) / 3_600_000
@@ -59,12 +59,12 @@ export interface SRStats {
 
 const isCloudEnabled = supabase !== null
 
-export function useSpacedRepetition() {
+export function useSpacedRepetition(cards: Character[]) {
   // Only show loading spinner if cloud is configured
   const [isLoading, setIsLoading] = useState(isCloudEnabled)
   const [store, setStore] = useState<SRStore>(() => (isCloudEnabled ? {} : loadLocalStore()))
   const [queue, setQueue] = useState<Character[]>(() =>
-    isCloudEnabled ? [] : buildQueue(loadLocalStore()),
+    isCloudEnabled ? [] : buildQueue(loadLocalStore(), cards),
   )
   const [index, setIndex] = useState(0)
   const [stats, setStats] = useState<SRStats>({ known: 0, unknown: 0, total: 0 })
@@ -91,12 +91,12 @@ export function useSpacedRepetition() {
       })
 
       setStore(nextStore)
-      setQueue(buildQueue(nextStore))
+      setQueue(buildQueue(nextStore, cards))
     } catch (err) {
       console.warn('Cloud load failed, falling back to localStorage:', err)
       const local = loadLocalStore()
       setStore(local)
-      setQueue(buildQueue(local))
+      setQueue(buildQueue(local, cards))
     } finally {
       setIsLoading(false)
     }
@@ -165,12 +165,12 @@ export function useSpacedRepetition() {
   )
 
   const restart = useCallback(() => {
-    setQueue(buildQueue(store))
+    setQueue(buildQueue(store, cards))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
     setShowMaxLevelReward(false)
-  }, [store])
+  }, [store, cards])
 
   const resetData = useCallback(async () => {
     if (supabase) {
@@ -182,12 +182,12 @@ export function useSpacedRepetition() {
     }
     localStorage.removeItem(STORAGE_KEY)
     setStore({})
-    setQueue(buildQueue({}))
+    setQueue(buildQueue({}, cards))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
     setShowMaxLevelReward(false)
-  }, [])
+  }, [cards])
 
   const getBucket = useCallback((char: string) => store[char]?.bucket ?? 0, [store])
 

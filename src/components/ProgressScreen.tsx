@@ -1,8 +1,9 @@
-import { lesson1 } from '../data/lesson1'
+import type { Character } from '../data/lesson1'
 import type { SRStore } from '../hooks/useSpacedRepetition'
 
 interface Props {
   store: SRStore
+  cards: Character[]
   onClose: () => void
 }
 
@@ -49,10 +50,10 @@ function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string
   )
 }
 
-export function ProgressScreen({ store, onClose }: Props) {
-  const total = lesson1.length
-  const mastered = lesson1.filter((c) => (store[c.char]?.bucket ?? 0) >= MAX_BUCKET).length
-  const learning = lesson1.filter((c) => {
+export function ProgressScreen({ store, cards, onClose }: Props) {
+  const total = cards.length
+  const mastered = cards.filter((c) => (store[c.char]?.bucket ?? 0) >= MAX_BUCKET).length
+  const learning = cards.filter((c) => {
     const b = store[c.char]?.bucket ?? 0
     return b > 0 && b < MAX_BUCKET
   }).length
@@ -102,7 +103,7 @@ export function ProgressScreen({ store, onClose }: Props) {
 
       {/* Card grid */}
       <div className="w-[calc(100%-40px)] max-w-[680px] grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3.5">
-        {lesson1.map((card) => {
+        {cards.map((card) => {
           const bucket = store[card.char]?.bucket ?? 0
           const lastSeen = store[card.char]?.lastSeen
           const lastSeenStr = lastSeen
