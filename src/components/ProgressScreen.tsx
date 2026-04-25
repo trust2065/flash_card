@@ -1,23 +1,23 @@
-import type { Character } from '../data/lesson1'
-import type { SRStore } from '../hooks/useSpacedRepetition'
+import type { Character } from '../data/lesson1';
+import type { SRStore } from '../hooks/useSpacedRepetition';
 
 interface Props {
-  store: SRStore
-  cards: Character[]
-  onClose: () => void
+  store: SRStore;
+  cards: Character[];
+  onClose: () => void;
 }
 
-const BUCKET_LABELS = ['初見', '認識中', '熟悉', '很熟', '精通']
-const MAX_BUCKET = 4
+const BUCKET_LABELS = ['初見', '認識中', '熟悉', '很熟', '精通'];
+const MAX_BUCKET = 4;
 
-function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string; zhuyin: string }) {
-  const size = 96
-  const stroke = 5
-  const r = (size - stroke) / 2
-  const circumference = 2 * Math.PI * r
-  const dash = (bucket / MAX_BUCKET) * circumference
-  const gap = circumference - dash
-  const isMastered = bucket === MAX_BUCKET
+function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string; zhuyin: string; }) {
+  const size = 96;
+  const stroke = 5;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const dash = (bucket / MAX_BUCKET) * circumference;
+  const gap = circumference - dash;
+  const isMastered = bucket === MAX_BUCKET;
 
   return (
     <div className="relative w-24 h-24 shrink-0">
@@ -47,18 +47,27 @@ function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string
         <span className="text-[0.6rem] text-fg/40">{zhuyin}</span>
       </div>
     </div>
-  )
+  );
 }
 
 export function ProgressScreen({ store, cards, onClose }: Props) {
-  const total = cards.length
-  const mastered = cards.filter((c) => (store[c.char]?.bucket ?? 0) >= MAX_BUCKET).length
+  const total = cards.length;
+  const mastered = cards.filter((c) => (store[c.char]?.bucket ?? 0) >= MAX_BUCKET).length;
   const learning = cards.filter((c) => {
-    const b = store[c.char]?.bucket ?? 0
-    return b > 0 && b < MAX_BUCKET
-  }).length
-  const unseen = total - mastered - learning
-  const progressPct = Math.round((mastered / total) * 100)
+    const b = store[c.char]?.bucket ?? 0;
+    return b > 0 && b < MAX_BUCKET;
+  }).length;
+  const unseen = total - mastered - learning;
+  const progressPct = Math.round((mastered / total) * 100);
+
+  const playAudio = (text: string) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-TW';
+    utterance.rate = 1;
+    window.speechSynthesis.speak(utterance);
+  };
 
   return (
     <div className="w-full min-h-[100dvh] flex flex-col items-center pb-14">
@@ -80,7 +89,7 @@ export function ProgressScreen({ store, cards, onClose }: Props) {
       {/* Progress bar + stats */}
       <div className="w-[calc(100%-40px)] max-w-[680px] mb-6 flex flex-col gap-2.5">
         <div className="h-2 rounded-full bg-primary/12 overflow-hidden">
-          <div 
+          <div
             className="h-full rounded-full bg-primary transition-all duration-600 ease"
             style={{ width: `${progressPct}%`, boxShadow: '0 0 12px rgba(124,106,255,0.5)' }}
           />
@@ -104,21 +113,21 @@ export function ProgressScreen({ store, cards, onClose }: Props) {
       {/* Card grid */}
       <div className="w-[calc(100%-40px)] max-w-[680px] grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3.5">
         {cards.map((card) => {
-          const bucket = store[card.char]?.bucket ?? 0
-          const lastSeen = store[card.char]?.lastSeen
+          const bucket = store[card.char]?.bucket ?? 0;
+          const lastSeen = store[card.char]?.lastSeen;
           const lastSeenStr = lastSeen
             ? new Date(lastSeen).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
-            : '從未'
-          const isMastered = bucket === MAX_BUCKET
+            : '從未';
+          const isMastered = bucket === MAX_BUCKET;
 
           return (
             <div
               key={card.char}
-              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-[20px] transition-transform duration-150 cursor-default border ${
-                isMastered 
-                  ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:-translate-y-1 hover:shadow-lg shadow-black/20' 
+              onClick={() => playAudio(card.char)}
+              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-[20px] transition-transform duration-150 cursor-pointer border ${isMastered
+                  ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:-translate-y-1 hover:shadow-lg shadow-black/20'
                   : 'border-white/[0.07] bg-white/[0.03] hover:bg-white/5 hover:-translate-y-1 hover:shadow-lg shadow-black/20'
-              }`}
+                }`}
             >
               <CircleProgress bucket={bucket} char={card.char} zhuyin={card.zhuyin} />
               <span className={`text-[0.72rem] font-bold ${isMastered ? 'text-primary' : 'text-primary/85'}`}>
@@ -128,9 +137,9 @@ export function ProgressScreen({ store, cards, onClose }: Props) {
                 上次：{lastSeenStr}
               </span>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

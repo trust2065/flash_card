@@ -21,7 +21,7 @@ export function FlashCard({ card, onFlip }: FlashCardProps) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'zh-TW';
-    utterance.rate = 0.8;
+    utterance.rate = 1;
     window.speechSynthesis.speak(utterance);
   };
 
