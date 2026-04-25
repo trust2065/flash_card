@@ -3,6 +3,9 @@ import { motion, useAnimation } from 'framer-motion';
 
 interface Coin {
   id: string;
+  offsetX: number;
+  offsetY: number;
+  dropDelay: number;
 }
 
 function SingleCoin({
@@ -19,51 +22,67 @@ function SingleCoin({
   useEffect(() => {
     let isMounted = true;
     const runAnimation = async () => {
-      // 隨機決定掉落的 X 軸起點 (螢幕寬度的 20% 到 80% 之間)
-      const startX = window.innerWidth * 0.2;
-      // 地板的高度 (大約在畫面底部上方 80px)
-      const groundY = window.innerHeight - 80;
+      // 起點：畫面右側外面，加上偏移量
+      const startX = window.innerWidth + 50;
+      const startY = window.innerHeight * 0.4 + coin.offsetY;
 
-      // 1. 從天而降 & 彈跳
+      // 出現位置：畫面右側中間，加上偏移量
+      const midX = window.innerWidth - 120 + coin.offsetX;
+      const midY = window.innerHeight * 0.4 + coin.offsetY;
+
+      // 終點：桶子的位置
+      const bucketX = window.innerWidth - 64;
+      const bucketY = window.innerHeight - 30;
+      const bucketWidth = 64;
+
+      // 1. 從右邊中間滑入，發光並自轉
       await controls.start({
-        y: [-window.innerHeight, groundY, groundY - 150, groundY, groundY - 50, groundY],
-        x: startX,
-        transition: { duration: 1.2, times: [0, 0.4, 0.6, 0.8, 0.9, 1], ease: "easeOut" }
+        x: [startX, midX, midX, midX],
+        y: [startY, midY, midY, midY],
+        rotateY: [0, 360, 720, 1080],
+        scale: [0.5, 1.2, 1.2, 1],
+        boxShadow: [
+          'inset 0 0 8px rgba(218, 165, 32, 0.8), 0 4px 6px rgba(0,0,0,0.3)',
+          'inset 0 0 15px rgba(255, 215, 0, 1), 0 0 20px 10px rgba(255, 215, 0, 0.6)',
+          'inset 0 0 15px rgba(255, 215, 0, 1), 0 0 30px 15px rgba(255, 215, 0, 0.8)',
+          'inset 0 0 8px rgba(218, 165, 32, 0.8), 0 4px 6px rgba(0,0,0,0.3)',
+        ],
+        transition: { duration: 1.5, ease: "easeOut" }
       });
 
       if (!isMounted) return;
 
-      // 2. 滾到桶子裡 (桶子在右下角)
-      const bucketX = window.innerWidth - 64; // 預估桶子中心的 X 座標
-      await controls.start({
-        x: bucketX,
-        rotate: 360 * 3, // 滾動三圈
-        transition: { duration: 1, ease: "easeInOut" }
-      });
+      // 稍微等待，讓每顆金幣依序掉入桶子
+      if (coin.dropDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, coin.dropDelay * 1000));
+      }
 
       if (!isMounted) return;
 
-      // 3. 掉進桶子
-      onDropInBucket(); // 播放音效與晃動桶子
+      // 2. 收進右下角的袋子
       await controls.start({
-        y: groundY + 50,
-        scale: 0.5,
+        x: bucketX - (bucketWidth / 2),
+        y: bucketY,
+        scale: 0.3,
         opacity: 0,
-        transition: { duration: 0.2 }
+        rotate: 360, // 掉落時隨便轉一下
+        transition: { duration: 0.5, ease: "easeIn" }
       });
 
       if (!isMounted) return;
+      onDropInBucket(); // 播放音效與晃動桶子
+
       onComplete(coin.id);
     };
 
     runAnimation();
     return () => { isMounted = false; };
-  }, [coin.id, controls, onComplete, onDropInBucket]);
+  }, [coin.id, coin.offsetX, coin.offsetY, coin.dropDelay, controls, onComplete, onDropInBucket]);
 
   return (
     <motion.div
       animate={controls}
-      initial={{ y: -window.innerHeight, x: -500 }}
+      initial={{ y: window.innerHeight * 0.4 + coin.offsetY, x: window.innerWidth + 50 }}
       className="absolute w-10 h-10 rounded-full flex items-center justify-center font-bold text-[#b8860b] z-[95]"
       style={{
         background: 'radial-gradient(circle at 30% 30%, #ffd700, #d4af37)',
@@ -82,13 +101,18 @@ export function CoinAnimation() {
   const [bucketShake, setBucketShake] = useState(false);
 
   const addCoins = useCallback((count: number) => {
-    let delay = 0;
-    for (let i = 0; i < count; i++) {
-      setTimeout(() => {
-        setCoins(prev => [...prev, { id: Math.random().toString() }]);
-      }, delay);
-      delay += 400; // 每顆金幣間隔拉長一點，讓他們依序掉落
-    }
+    const newCoins = Array.from({ length: count }).map((_, i) => {
+      // 計算偏移量，讓多顆金幣一起出現時能有層次感（錯開位置）
+      const offsetX = count > 1 ? (Math.random() - 0.5) * 40 : 0;
+      const offsetY = count > 1 ? (i - (count - 1) / 2) * 50 : 0;
+      return {
+        id: Math.random().toString(),
+        offsetX,
+        offsetY,
+        dropDelay: i * 0.15 // 依序掉落的延遲
+      };
+    });
+    setCoins(prev => [...prev, ...newCoins]);
   }, []);
 
   const handleDropInBucket = useCallback(() => {
