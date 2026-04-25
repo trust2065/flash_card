@@ -6,19 +6,6 @@ let audioCtx: AudioContext | null = null;
 let coinBuffer: AudioBuffer | null = null;
 let fetchPromise: Promise<void> | null = null;
 
-// 必須在用戶手勢事件（touchstart/click）的同步堆疊裡呼叫，iOS 才允許播音
-export function resumeAudioContext() {
-  if (typeof window === 'undefined') return;
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume(); // 必須同步，不能 await！
-  }
-  // 順便觸發預載，這樣之後播放才是真正零延遲
-  initCoinAudio();
-}
-
 // 預先載入音檔
 export async function initCoinAudio() {
   if (typeof window === 'undefined') return;

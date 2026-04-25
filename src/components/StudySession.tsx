@@ -1,6 +1,5 @@
 import { FlashCard } from './FlashCard';
 import type { useSpacedRepetition } from '../hooks/useSpacedRepetition';
-import { resumeAudioContext } from './CoinAnimation';
 
 interface StudySessionProps {
   sr: ReturnType<typeof useSpacedRepetition>;
@@ -49,7 +48,7 @@ export function StudySession({ sr, onFinish }: StudySessionProps) {
       >
         <button
           className="h-20 rounded-[28px] flex flex-col items-center justify-center gap-1 font-ui text-xl font-extrabold border-2 border-white/5 bg-surface text-fg transition-all duration-200 active:scale-95 select-none cursor-pointer hover:bg-white/[0.08]"
-          onClick={() => { resumeAudioContext(); answer(false); }}
+          onClick={() => answer(false)}
           aria-label="不認識"
         >
           <span className="text-[28px]">🤔</span>
@@ -59,7 +58,7 @@ export function StudySession({ sr, onFinish }: StudySessionProps) {
         <button
           className="h-20 rounded-[28px] flex flex-col items-center justify-center gap-1 font-ui text-xl font-extrabold bg-primary text-white transition-all duration-200 active:scale-95 select-none cursor-pointer"
           style={{ boxShadow: '0 12px 32px rgba(124,106,255,0.35)' }}
-          onClick={() => { resumeAudioContext(); answer(true); }}
+          onClick={() => answer(true)}
           aria-label="認識"
         >
           <span className="text-[28px]">💡</span>
