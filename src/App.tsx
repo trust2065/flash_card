@@ -20,6 +20,30 @@ function App() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
+  // 監聽連續答對與升級狀態來觸發金幣動畫
+  useEffect(() => {
+    let coinCount = 0
+
+    // 1. 處理連續答對獎勵
+    if (sr.streak > 0) {
+      if (sr.streak % 10 === 0) {
+        coinCount = 3 // 每 10 題給 3 顆
+      } else if (sr.streak % 5 === 0) {
+        coinCount = 1 // 每 5 題給 1 顆
+      }
+    }
+
+    // 2. 處理滿級獎勵（若同時觸發，取最大值給獎勵即可，或依照你的需求疊加）
+    if (sr.showMaxLevelReward) {
+      coinCount = Math.max(coinCount, 3) // 滿級至少給 3 顆
+      sr.setShowMaxLevelReward(false) // 觸發後重置
+    }
+
+    if (coinCount > 0) {
+      ;(window as any).testCoins?.(coinCount)
+    }
+  }, [sr.streak, sr.showMaxLevelReward, sr.setShowMaxLevelReward])
+
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
       try {

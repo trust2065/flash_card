@@ -68,6 +68,8 @@ export function useSpacedRepetition() {
   )
   const [index, setIndex] = useState(0)
   const [stats, setStats] = useState<SRStats>({ known: 0, unknown: 0, total: 0 })
+  const [streak, setStreak] = useState(0)
+  const [showMaxLevelReward, setShowMaxLevelReward] = useState(false)
 
   const loadFromCloud = useCallback(async () => {
     if (!supabase) return
@@ -118,6 +120,18 @@ export function useSpacedRepetition() {
       const newBucket = known ? Math.min(state.bucket + 1, MAX_BUCKET) : 0
       const lastSeen = Date.now()
 
+      if (known) {
+        setStreak((s) => s + 1)
+        if (state.bucket < MAX_BUCKET && newBucket === MAX_BUCKET) {
+          setShowMaxLevelReward(true)
+        } else {
+          setShowMaxLevelReward(false)
+        }
+      } else {
+        setStreak(0)
+        setShowMaxLevelReward(false)
+      }
+
       if (supabase) {
         try {
           await supabase.from('flashcard_progress').upsert(
@@ -154,6 +168,8 @@ export function useSpacedRepetition() {
     setQueue(buildQueue(store))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
+    setStreak(0)
+    setShowMaxLevelReward(false)
   }, [store])
 
   const resetData = useCallback(async () => {
@@ -169,6 +185,8 @@ export function useSpacedRepetition() {
     setQueue(buildQueue({}))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
+    setStreak(0)
+    setShowMaxLevelReward(false)
   }, [])
 
   const getBucket = useCallback((char: string) => store[char]?.bucket ?? 0, [store])
@@ -179,6 +197,9 @@ export function useSpacedRepetition() {
     isFinished,
     stats,
     store,
+    streak,
+    showMaxLevelReward,
+    setShowMaxLevelReward,
     answer,
     restart,
     resetData,

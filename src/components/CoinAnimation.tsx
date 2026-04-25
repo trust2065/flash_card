@@ -118,7 +118,7 @@ export function CoinAnimation() {
   const handleDropInBucket = useCallback(() => {
     // 播放音效
     try {
-      const audio = new Audio('/pickupCoin.wav');
+      const audio = new Audio('/coin_new.wav');
       audio.volume = 0.5;
       audio.play();
     } catch (e) {
