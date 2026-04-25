@@ -210,21 +210,7 @@ export function CoinAnimation() {
         </motion.div>
       </div>
 
-      {/* 測試用按鈕 */}
-      <div className="fixed top-4 left-4 z-[101] flex gap-2">
-        <button
-          onClick={() => addCoins(1)}
-          className="px-3 py-1 bg-white/10 rounded text-sm hover:bg-white/20 text-white cursor-pointer"
-        >
-          測試 1 顆
-        </button>
-        <button
-          onClick={() => addCoins(3)}
-          className="px-3 py-1 bg-white/10 rounded text-sm hover:bg-white/20 text-white cursor-pointer"
-        >
-          測試 3 顆
-        </button>
-      </div>
+
     </>
   );
 }

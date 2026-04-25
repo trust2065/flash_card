@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { Character } from '../data/lesson1';
+import { playAudio } from '../utils/audio';
 
 interface FlashCardProps {
   card: Character;
@@ -14,15 +15,6 @@ export function FlashCard({ card, onFlip }: FlashCardProps) {
     setIsFlipped(!isFlipped);
     onFlip?.();
     if (!isFlipped) playAudio(card.char);
-  };
-
-  const playAudio = (text: string) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-TW';
-    utterance.rate = 1;
-    window.speechSynthesis.speak(utterance);
   };
 
   const faceBase: React.CSSProperties = {

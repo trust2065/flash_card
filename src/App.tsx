@@ -117,54 +117,67 @@ function App() {
         <StudySession sr={sr} onFinish={() => { }} />
       )}
 
-      {/* 📊 progress toggle — hidden when already on progress page */}
+      {/* Bottom Left Controls: Progress & Lesson Selector */}
       {!showProgress && (
-        <button
-          onClick={() => setShowProgress(true)}
-          aria-label="查看學習成果"
-          className="absolute bottom-6 left-6 w-11 h-11 rounded-full border border-white/[0.12] bg-primary/15 text-xl flex items-center justify-center z-50 transition-all duration-200 hover:bg-primary/30 hover:scale-110 cursor-pointer"
-        >
-          📊
-        </button>
-      )}
+        <div className="absolute bottom-6 left-6 flex items-center gap-4 z-50">
+          {/* 📊 progress toggle */}
+          <button
+            onClick={() => setShowProgress(true)}
+            aria-label="查看學習成果"
+            className="w-11 h-11 rounded-full border border-white/[0.12] bg-primary/15 text-xl flex items-center justify-center transition-all duration-200 hover:bg-primary/30 hover:scale-110 cursor-pointer shrink-0"
+          >
+            📊
+          </button>
 
-      {/* Lesson selector */}
-      {!showProgress && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1 z-50">
-          {(['1', '2', 'all'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setSelectedLesson(l)}
-              className={`px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 cursor-pointer ${selectedLesson === l
-                ? 'bg-primary/40 border-primary/60 text-white font-bold'
-                : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/80'
-                }`}
-            >
-              {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
-            </button>
-          ))}
+          {/* Lesson selector */}
+          <div className="flex gap-1">
+            {(['1', '2', 'all'] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setSelectedLesson(l)}
+                className={`px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 cursor-pointer ${selectedLesson === l
+                  ? 'bg-primary/40 border-primary/60 text-white font-bold'
+                  : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/80'
+                  }`}
+              >
+                {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
 
-      {/* Test Confetti button */}
-      <button
-        onClick={() => {
-          setShowTestConfetti(true);
-          setTimeout(() => setShowTestConfetti(false), 8000);
-        }}
-        className="absolute bottom-[4.5rem] right-6 px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] z-50 transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer"
-      >
-        測試彩屑
-      </button>
-
-      {/* Reset button */}
-      <button
-        onClick={() => setShowResetModal(true)}
-        className="absolute bottom-6 right-6 px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] z-50 transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer"
-      >
-        重置
-      </button>
+      {/* Test & Debug buttons */}
+      <div className="absolute top-6 left-6 flex flex-col gap-2 z-[101]">
+        <button
+          onClick={() => (window as any).testCoins?.(1)}
+          className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
+        >
+          測試 1 顆金幣
+        </button>
+        <button
+          onClick={() => (window as any).testCoins?.(3)}
+          className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
+        >
+          測試 3 顆金幣
+        </button>
+        <button
+          onClick={() => {
+            setShowTestConfetti(true);
+            setTimeout(() => setShowTestConfetti(false), 8000);
+          }}
+          className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
+        >
+          測試彩屑
+        </button>
+        <button
+          onClick={() => setShowResetModal(true)}
+          className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
+        >
+          重置
+        </button>
+      </div>
 
       {/* Reset Modal */}
       {showResetModal && (

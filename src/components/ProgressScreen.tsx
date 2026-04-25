@@ -1,5 +1,6 @@
 import type { Character } from '../data/lesson1';
 import type { SRStore } from '../hooks/useSpacedRepetition';
+import { playAudio } from '../utils/audio';
 
 interface Props {
   store: SRStore;
@@ -59,15 +60,6 @@ export function ProgressScreen({ store, cards, onClose }: Props) {
   }).length;
   const unseen = total - mastered - learning;
   const progressPct = Math.round((mastered / total) * 100);
-
-  const playAudio = (text: string) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-TW';
-    utterance.rate = 1;
-    window.speechSynthesis.speak(utterance);
-  };
 
   return (
     <div className="w-full min-h-[100dvh] flex flex-col items-center pb-14">
