@@ -5,9 +5,18 @@ import { ProgressScreen } from './components/ProgressScreen'
 import { ResetModal } from './components/ResetModal'
 import { useSpacedRepetition } from './hooks/useSpacedRepetition'
 import { CoinAnimation } from './components/CoinAnimation'
+import { lesson1 } from './data/lesson1'
+import { lesson2 } from './data/lesson2'
 
 function App() {
-  const sr = useSpacedRepetition()
+  const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1')
+
+  const cards =
+    selectedLesson === '1' ? lesson1
+    : selectedLesson === '2' ? lesson2
+    : [...lesson1, ...lesson2]
+
+  const sr = useSpacedRepetition(cards)
   const [showProgress, setShowProgress] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -19,6 +28,13 @@ function App() {
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
+
+  // 切換課程時自動重置 queue
+  useEffect(() => {
+    sr.restart()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLesson])
+
 
   // 監聽連續答對與升級狀態來觸發金幣動畫
   useEffect(() => {
@@ -81,7 +97,7 @@ function App() {
       }`}
     >
       {showProgress ? (
-        <ProgressScreen store={sr.store} onClose={() => setShowProgress(false)} />
+        <ProgressScreen store={sr.store} cards={cards} onClose={() => setShowProgress(false)} />
       ) : sr.isFinished ? (
         <ResultScreen stats={sr.stats} onRestart={sr.restart} />
       ) : (
@@ -98,6 +114,26 @@ function App() {
           📊
         </button>
       )}
+
+      {/* Lesson selector */}
+      {!showProgress && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1 z-50">
+          {(['1', '2', 'all'] as const).map((l) => (
+            <button
+              key={l}
+              onClick={() => setSelectedLesson(l)}
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 cursor-pointer ${
+                selectedLesson === l
+                  ? 'bg-primary/40 border-primary/60 text-white font-bold'
+                  : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/80'
+              }`}
+            >
+              {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
+            </button>
+          ))}
+        </div>
+      )}
+
 
       {/* Reset button */}
       <button
