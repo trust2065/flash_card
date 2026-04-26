@@ -82,7 +82,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     setShowMaxLevelReward(false)
     
     if (isCloudEnabled) {
-      loadFromCloud()
+      loadFromCloud(true)
     } else {
       const local = loadLocalStore(userId)
       setStore(local)
@@ -90,7 +90,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     }
   }, [userId, cards])
 
-  const loadFromCloud = useCallback(async () => {
+  const loadFromCloud = useCallback(async (rebuildQueue: boolean = false) => {
     if (!supabase) return
     setIsLoading(true)
     try {
@@ -110,12 +110,16 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
       })
 
       setStore(nextStore)
-      setQueue(buildQueue(nextStore, cards))
+      if (rebuildQueue) {
+        setQueue(buildQueue(nextStore, cards))
+      }
     } catch (err) {
       console.warn('Cloud load failed, falling back to localStorage:', err)
       const local = loadLocalStore(userId)
       setStore(local)
-      setQueue(buildQueue(local, cards))
+      if (rebuildQueue) {
+        setQueue(buildQueue(local, cards))
+      }
     } finally {
       setIsLoading(false)
     }
@@ -124,11 +128,11 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
   useEffect(() => {
     if (!isCloudEnabled) return
 
-    loadFromCloud()
+    loadFromCloud(true) // Initial load should build the queue
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        loadFromCloud()
+        loadFromCloud(false) // Background sync shouldn't disrupt active session
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)

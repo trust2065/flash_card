@@ -126,14 +126,6 @@ function App() {
     }
   };
 
-  if (sr.isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a] text-slate-400 text-2xl">
-        同步雲端資料中...
-      </div>
-    );
-  }
-
   const handleResetConfirm = async (password: string) => {
     if (password === '1234') {
       return true;
@@ -289,6 +281,12 @@ function App() {
               稍後
             </button>
           </div>
+        </div>
+      )}
+
+      {sr.isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a]/80 backdrop-blur-sm text-slate-400 text-2xl z-[999]">
+          同步雲端資料中...
         </div>
       )}
     </main>

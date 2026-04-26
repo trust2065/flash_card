@@ -78,9 +78,9 @@ function SingleCoin({
       const midX = window.innerWidth - 120 + coin.offsetX;
       const midY = window.innerHeight * 0.4 + coin.offsetY;
 
-      // 終點：桶子的位置
-      const bucketX = window.innerWidth - 64;
-      const bucketY = window.innerHeight - 30;
+      // 終點：桶子的位置 (對應 right-6 和 bottom-6，也就是 24px 加上自身一半)
+      const bucketX = window.innerWidth - 56;
+      const bucketY = window.innerHeight - 56;
       const bucketWidth = 64;
 
       // 1. 從右邊中間滑入，發光並自轉
@@ -201,7 +201,7 @@ export function CoinAnimation() {
 
         {/* 存金幣的桶子 */}
         <motion.div
-          className="absolute bottom-0 right-8 w-16 h-16 bg-[#8b4513] rounded-b-xl border-t-4 border-[#5c2e0b] z-[90] flex items-center justify-center shadow-[inset_0_10px_20px_rgba(0,0,0,0.5)] origin-bottom"
+          className="absolute bottom-6 right-6 w-16 h-16 bg-[#8b4513] rounded-b-xl border-t-4 border-[#5c2e0b] z-[90] flex items-center justify-center shadow-[inset_0_10px_20px_rgba(0,0,0,0.5)] origin-bottom"
           animate={bucketShake ? { rotate: [-5, 5, -5, 5, 0], y: [0, 5, 0] } : {}}
           transition={{ duration: 0.2 }}
         >
