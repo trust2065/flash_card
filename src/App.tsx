@@ -1,5 +1,5 @@
 /// <reference types="vite-plugin-pwa/client" />
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
@@ -78,25 +78,28 @@ function App() {
   }, [selectedLesson]);
 
 
+  const lastRewardedStreakRef = useRef(0);
+
   // 監聽連續答對與升級狀態來觸發金幣動畫
   useEffect(() => {
     let coinCount = 0;
 
     // 1. 處理連續答對獎勵
-    if (sr.streak > 0) {
+    if (sr.streak > 0 && sr.streak !== lastRewardedStreakRef.current) {
       if (sr.streak % 10 === 0) {
         coinCount = 3; // 每 10 題給 3 顆
       } else if (sr.streak % 5 === 0) {
         coinCount = 1; // 每 5 題給 1 顆
       }
+      lastRewardedStreakRef.current = sr.streak;
+    } else if (sr.streak === 0) {
+      lastRewardedStreakRef.current = 0;
     }
 
     let timeoutId: ReturnType<typeof setTimeout>;
 
-    // 2. 處理滿級獎勵（若同時觸發，取最大值給獎勵即可，或依照你的需求疊加）
+    // 2. 處理滿級獎勵（僅放彩屑，不再發放金幣避免與連續答對混淆）
     if (sr.showMaxLevelReward) {
-      coinCount = Math.max(coinCount, 3); // 滿級至少給 3 顆
-
       // 3 秒後自動隱藏 Confetti
       timeoutId = setTimeout(() => {
         sr.setShowMaxLevelReward(false);
