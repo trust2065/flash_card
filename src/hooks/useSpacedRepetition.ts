@@ -5,8 +5,11 @@ import { supabase } from '../lib/supabase'
 // Bucket system: 0-4, higher = appears less frequently
 const BUCKET_WEIGHTS = [8, 4, 2, 1, 1]
 const MAX_BUCKET = 4
-const USER_ID = 'default-kid'
-const STORAGE_KEY = 'flashcard-sr-v1'
+const STORAGE_KEY_PREFIX = 'flashcard-sr-v1'
+
+function getStorageKey(userId: string) {
+  return `${STORAGE_KEY_PREFIX}-${userId}`
+}
 
 interface CardState {
   bucket: number
@@ -21,16 +24,16 @@ interface ProgressRow {
   last_seen: string
 }
 
-function loadLocalStore(): SRStore {
+function loadLocalStore(userId: string): SRStore {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
+    return JSON.parse(localStorage.getItem(getStorageKey(userId)) ?? '{}')
   } catch {
     return {}
   }
 }
 
-function saveLocalStore(store: SRStore) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
+function saveLocalStore(userId: string, store: SRStore) {
+  localStorage.setItem(getStorageKey(userId), JSON.stringify(store))
 }
 
 function buildQueue(store: SRStore, cards: Character[]): Character[] {
@@ -59,17 +62,33 @@ export interface SRStats {
 
 const isCloudEnabled = supabase !== null
 
-export function useSpacedRepetition(cards: Character[]) {
+export function useSpacedRepetition(userId: string, cards: Character[]) {
   // Only show loading spinner if cloud is configured
   const [isLoading, setIsLoading] = useState(isCloudEnabled)
-  const [store, setStore] = useState<SRStore>(() => (isCloudEnabled ? {} : loadLocalStore()))
+  const [store, setStore] = useState<SRStore>(() => (isCloudEnabled ? {} : loadLocalStore(userId)))
   const [queue, setQueue] = useState<Character[]>(() =>
-    isCloudEnabled ? [] : buildQueue(loadLocalStore(), cards),
+    isCloudEnabled ? [] : buildQueue(loadLocalStore(userId), cards),
   )
   const [index, setIndex] = useState(0)
   const [stats, setStats] = useState<SRStats>({ known: 0, unknown: 0, total: 0 })
   const [streak, setStreak] = useState(0)
   const [showMaxLevelReward, setShowMaxLevelReward] = useState(false)
+
+  // 當 userId 改變時，重新初始化
+  useEffect(() => {
+    setIndex(0)
+    setStats({ known: 0, unknown: 0, total: 0 })
+    setStreak(0)
+    setShowMaxLevelReward(false)
+    
+    if (isCloudEnabled) {
+      loadFromCloud()
+    } else {
+      const local = loadLocalStore(userId)
+      setStore(local)
+      setQueue(buildQueue(local, cards))
+    }
+  }, [userId, cards])
 
   const loadFromCloud = useCallback(async () => {
     if (!supabase) return
@@ -78,7 +97,7 @@ export function useSpacedRepetition(cards: Character[]) {
       const { data, error } = await supabase
         .from('flashcard_progress')
         .select('char, bucket, last_seen')
-        .eq('user_id', USER_ID)
+        .eq('user_id', userId)
 
       if (error) throw error
 
@@ -94,7 +113,7 @@ export function useSpacedRepetition(cards: Character[]) {
       setQueue(buildQueue(nextStore, cards))
     } catch (err) {
       console.warn('Cloud load failed, falling back to localStorage:', err)
-      const local = loadLocalStore()
+      const local = loadLocalStore(userId)
       setStore(local)
       setQueue(buildQueue(local, cards))
     } finally {
@@ -136,7 +155,7 @@ export function useSpacedRepetition(cards: Character[]) {
         try {
           await supabase.from('flashcard_progress').upsert(
             {
-              user_id: USER_ID,
+              user_id: userId,
               char: current.char,
               bucket: newBucket,
               last_seen: new Date(lastSeen).toISOString(),
@@ -150,7 +169,7 @@ export function useSpacedRepetition(cards: Character[]) {
 
       // Always write to localStorage as a backup / offline cache
       const nextStore = { ...store, [current.char]: { bucket: newBucket, lastSeen } }
-      saveLocalStore(nextStore)
+      saveLocalStore(userId, nextStore)
       setStore(nextStore)
 
       setStats((prev) => ({
@@ -175,12 +194,12 @@ export function useSpacedRepetition(cards: Character[]) {
   const resetData = useCallback(async () => {
     if (supabase) {
       try {
-        await supabase.from('flashcard_progress').delete().eq('user_id', USER_ID)
+        await supabase.from('flashcard_progress').delete().eq('user_id', userId)
       } catch (err) {
         console.warn('Cloud reset failed:', err)
       }
     }
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(getStorageKey(userId))
     setStore({})
     setQueue(buildQueue({}, cards))
     setIndex(0)

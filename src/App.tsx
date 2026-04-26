@@ -1,4 +1,6 @@
+/// <reference types="vite-plugin-pwa/client" />
 import { useState, useEffect } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import { StudySession } from './components/StudySession';
@@ -7,6 +9,7 @@ import { ProgressScreen } from './components/ProgressScreen';
 import { ResetModal } from './components/ResetModal';
 import { useSpacedRepetition } from './hooks/useSpacedRepetition';
 import { CoinAnimation } from './components/CoinAnimation';
+import { UserSelection, USERS, type User } from './components/UserSelection';
 import { lesson1 } from './data/lesson1';
 import { lesson2 } from './data/lesson2';
 
@@ -14,12 +17,30 @@ function App() {
   const { width, height } = useWindowSize();
   const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1');
 
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r) {
+      if (r) {
+        setInterval(() => {
+          r.update()
+        }, 60 * 60 * 1000) // 每小時檢查更新
+      }
+    }
+  });
+
   const cards =
     selectedLesson === '1' ? lesson1
       : selectedLesson === '2' ? lesson2
         : [...lesson1, ...lesson2];
 
-  const sr = useSpacedRepetition(cards);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const savedId = localStorage.getItem('flashcard-current-user');
+    return USERS.find((u) => u.id === savedId) || null;
+  });
+
+  const sr = useSpacedRepetition(currentUser?.id || 'default-kid', cards);
   const [showProgress, setShowProgress] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -104,6 +125,17 @@ function App() {
     }
   };
 
+  if (!currentUser) {
+    return (
+      <UserSelection
+        onSelect={(user) => {
+          localStorage.setItem('flashcard-current-user', user.id);
+          setCurrentUser(user);
+        }}
+      />
+    );
+  }
+
   return (
     <main
       className={`fixed inset-0 flex flex-col items-center ${showProgress ? 'overflow-y-auto' : 'overflow-hidden'
@@ -120,6 +152,18 @@ function App() {
       {/* Bottom Left Controls: Progress & Lesson Selector */}
       {!showProgress && (
         <div className="absolute bottom-6 left-6 flex items-center gap-4 z-50">
+          {/* Switch User Button */}
+          <button
+            onClick={() => {
+              localStorage.removeItem('flashcard-current-user');
+              setCurrentUser(null);
+            }}
+            className="w-11 h-11 rounded-full border border-white/[0.12] bg-white/5 text-2xl flex items-center justify-center transition-all duration-200 hover:bg-white/10 hover:scale-110 cursor-pointer shrink-0"
+            title={`切換使用者 (目前: ${currentUser.name})`}
+          >
+            {currentUser.avatar}
+          </button>
+
           {/* 📊 progress toggle */}
           <button
             onClick={() => setShowProgress(true)}
@@ -216,6 +260,27 @@ function App() {
             numberOfPieces={200}
             gravity={0.15}
           />
+        </div>
+      )}
+
+      {/* PWA Update Prompt */}
+      {needRefresh && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl z-[200] flex flex-col items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+          <p className="text-sm font-medium">🌟 發現新版本！</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => updateServiceWorker(true)}
+              className="bg-primary/80 hover:bg-primary px-4 py-2 rounded-xl text-sm font-bold transition-all"
+            >
+              立刻更新
+            </button>
+            <button
+              onClick={() => setNeedRefresh(false)}
+              className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm transition-all"
+            >
+              稍後
+            </button>
+          </div>
         </div>
       )}
     </main>
