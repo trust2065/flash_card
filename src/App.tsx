@@ -7,6 +7,7 @@ import { StudySession } from './components/StudySession';
 import { ResultScreen } from './components/ResultScreen';
 import { ProgressScreen } from './components/ProgressScreen';
 import { ResetModal } from './components/ResetModal';
+import { SettingsModal } from './components/SettingsModal';
 import { useSpacedRepetition } from './hooks/useSpacedRepetition';
 import { CoinAnimation } from './components/CoinAnimation';
 import { UserSelection, USERS, type User } from './components/UserSelection';
@@ -43,8 +44,24 @@ function App() {
   const sr = useSpacedRepetition(currentUser?.id || 'default-kid', cards);
   const [showProgress, setShowProgress] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showTestConfetti, setShowTestConfetti] = useState(false);
+
+  const handleCheckUpdate = async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.update();
+        alert('檢查完畢！\n如果有新版本，畫面上方會跳出「發現新版本」的提示。\n如果沒有跳出提示，代表目前已是最新版本。');
+      } catch (err) {
+        console.error('更新檢查失敗:', err);
+        alert('檢查更新失敗，請稍後再試。');
+      }
+    } else {
+      alert('此瀏覽器環境不支援更新檢查。');
+    }
+  };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -149,46 +166,33 @@ function App() {
         <StudySession sr={sr} onFinish={() => { }} />
       )}
 
-      {/* Bottom Left Controls: Progress & Lesson Selector */}
+      {/* Bottom Left Controls: Settings Toggle */}
       {!showProgress && (
         <div className="absolute bottom-6 left-6 flex items-center gap-4 z-50">
-          {/* Switch User Button */}
           <button
-            onClick={() => {
-              localStorage.removeItem('flashcard-current-user');
-              setCurrentUser(null);
-            }}
-            className="w-11 h-11 rounded-full border border-white/[0.12] bg-white/5 text-2xl flex items-center justify-center transition-all duration-200 hover:bg-white/10 hover:scale-110 cursor-pointer shrink-0"
-            title={`切換使用者 (目前: ${currentUser.name})`}
+            onClick={() => setShowSettingsModal(true)}
+            aria-label="開啟設定"
+            className="w-12 h-12 rounded-full border border-white/[0.12] bg-slate-800/80 backdrop-blur-sm text-2xl flex items-center justify-center transition-all duration-200 hover:bg-slate-700 hover:scale-110 cursor-pointer shadow-lg shadow-black/20"
           >
-            {currentUser.avatar}
+            ⚙️
           </button>
-
-          {/* 📊 progress toggle */}
-          <button
-            onClick={() => setShowProgress(true)}
-            aria-label="查看學習成果"
-            className="w-11 h-11 rounded-full border border-white/[0.12] bg-primary/15 text-xl flex items-center justify-center transition-all duration-200 hover:bg-primary/30 hover:scale-110 cursor-pointer shrink-0"
-          >
-            📊
-          </button>
-
-          {/* Lesson selector */}
-          <div className="flex gap-1">
-            {(['1', '2', 'all'] as const).map((l) => (
-              <button
-                key={l}
-                onClick={() => setSelectedLesson(l)}
-                className={`px-3 py-1.5 text-xs rounded-lg border transition-all duration-200 cursor-pointer ${selectedLesson === l
-                  ? 'bg-primary/40 border-primary/60 text-white font-bold'
-                  : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/80'
-                  }`}
-              >
-                {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
-              </button>
-            ))}
-          </div>
         </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <SettingsModal
+          currentUser={currentUser}
+          onClose={() => setShowSettingsModal(false)}
+          onSwitchUser={() => {
+            localStorage.removeItem('flashcard-current-user');
+            setCurrentUser(null);
+          }}
+          onShowProgress={() => setShowProgress(true)}
+          selectedLesson={selectedLesson}
+          onSelectLesson={setSelectedLesson}
+          onCheckUpdate={handleCheckUpdate}
+        />
       )}
 
 
