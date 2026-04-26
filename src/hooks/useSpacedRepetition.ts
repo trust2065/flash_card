@@ -119,12 +119,20 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [userId, cards])
 
   useEffect(() => {
-    if (isCloudEnabled) {
-      loadFromCloud()
+    if (!isCloudEnabled) return
+
+    loadFromCloud()
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadFromCloud()
+      }
     }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [loadFromCloud])
 
   const current = queue[index] ?? null
@@ -180,7 +188,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
 
       setIndex((i) => i + 1)
     },
-    [current, store],
+    [current, store, userId],
   )
 
   const restart = useCallback(() => {
@@ -224,5 +232,6 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     resetData,
     getBucket,
     queueLength: queue.length,
+    syncFromCloud: loadFromCloud,
   }
 }

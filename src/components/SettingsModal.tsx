@@ -8,6 +8,7 @@ interface SettingsModalProps {
   selectedLesson: '1' | '2' | 'all';
   onSelectLesson: (lesson: '1' | '2' | 'all') => void;
   onCheckUpdate: () => void;
+  onSyncCloud: () => void;
 }
 
 export function SettingsModal({
@@ -18,6 +19,7 @@ export function SettingsModal({
   selectedLesson,
   onSelectLesson,
   onCheckUpdate,
+  onSyncCloud,
 }: SettingsModalProps) {
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex justify-center items-center p-4">
@@ -62,8 +64,8 @@ export function SettingsModal({
                   key={l}
                   onClick={() => onSelectLesson(l)}
                   className={`flex-1 py-2.5 rounded-xl border transition-all duration-200 cursor-pointer ${selectedLesson === l
-                      ? 'bg-primary/30 border-primary/50 text-white font-bold'
-                      : 'bg-slate-800 border-white/5 text-slate-400 hover:bg-slate-700 hover:text-white'
+                    ? 'bg-primary/30 border-primary/50 text-white font-bold'
+                    : 'bg-slate-800 border-white/5 text-slate-400 hover:bg-slate-700 hover:text-white'
                     }`}
                 >
                   {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
@@ -75,21 +77,32 @@ export function SettingsModal({
           <div className="h-px bg-white/10 w-full my-1"></div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <button
               onClick={() => {
                 onShowProgress();
                 onClose();
               }}
-              className="flex flex-col items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5 p-4 rounded-xl transition-colors cursor-pointer"
+              className="flex flex-col items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5 p-3 rounded-xl transition-colors cursor-pointer"
             >
               <span className="text-2xl">📊</span>
               <span className="text-sm font-medium text-white">學習成果</span>
             </button>
 
             <button
+              onClick={() => {
+                onSyncCloud();
+                onClose();
+              }}
+              className="flex flex-col items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5 p-3 rounded-xl transition-colors cursor-pointer"
+            >
+              <span className="text-2xl">☁️</span>
+              <span className="text-sm font-medium text-white">同步雲端</span>
+            </button>
+
+            <button
               onClick={onCheckUpdate}
-              className="flex flex-col items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5 p-4 rounded-xl transition-colors cursor-pointer"
+              className="flex flex-col items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5 p-3 rounded-xl transition-colors cursor-pointer"
             >
               <span className="text-2xl">🔄</span>
               <span className="text-sm font-medium text-white">檢查更新</span>

@@ -192,6 +192,7 @@ function App() {
           selectedLesson={selectedLesson}
           onSelectLesson={setSelectedLesson}
           onCheckUpdate={handleCheckUpdate}
+          onSyncCloud={sr.syncFromCloud}
         />
       )}
 
