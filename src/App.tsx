@@ -274,7 +274,10 @@ function App() {
           <p className="text-sm font-medium">🌟 發現新版本！</p>
           <div className="flex gap-3">
             <button
-              onClick={() => updateServiceWorker(true)}
+              onClick={() => {
+                updateServiceWorker(true);
+                setTimeout(() => window.location.reload(), 1000);
+              }}
               className="bg-primary/80 hover:bg-primary px-4 py-2 rounded-xl text-sm font-bold transition-all"
             >
               立刻更新
