@@ -1,0 +1,35 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # 每週一與週四的午夜 0 點執行一次 (可避免 7 天停用限制)
+    - cron: '0 0 * * 1,4'
+  workflow_dispatch: # 允許手動觸發測試
+
+jobs:
+  ping_supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          # 透過對 flashcard_progress 表格查詢 1 筆資料，確保真實喚醒 DB
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/flashcard_progress?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}")
+          
+          echo "Status Code: $RESPONSE"
+          
+          if [ "$RESPONSE" -eq 200 ]; then
+            # 任務成功，發送訊息到 Slack
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"text": "✅ Supabase 專案活動觸發成功，目前狀態正常。"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+          else
+            # 任務失敗，發送錯誤警告到 Slack，並附上狀態碼
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"text": "⚠️ Supabase Keep Alive 任務失敗，請檢查 API 狀態。(狀態碼: '"$RESPONSE"') "}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+            
+            # 讓 GitHub Actions 任務以失敗作結
+            exit 1
+          fi
