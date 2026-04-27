@@ -9,6 +9,8 @@ interface SettingsModalProps {
   onSelectLesson: (lesson: '1' | '2' | 'all') => void;
   onCheckUpdate: () => void;
   onSyncCloud: () => void;
+  rewardIcon: 'coin' | 'chicken';
+  onSelectReward: (reward: 'coin' | 'chicken') => void;
 }
 
 export function SettingsModal({
@@ -20,6 +22,8 @@ export function SettingsModal({
   onSelectLesson,
   onCheckUpdate,
   onSyncCloud,
+  rewardIcon,
+  onSelectReward,
 }: SettingsModalProps) {
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex justify-center items-center p-4">
@@ -69,6 +73,25 @@ export function SettingsModal({
                     }`}
                 >
                   {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Reward Selection */}
+          <div className="space-y-2">
+            <div className="text-sm font-medium text-slate-400">獎勵圖示</div>
+            <div className="flex gap-2">
+              {(['coin', 'chicken'] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => onSelectReward(r)}
+                  className={`flex-1 py-2.5 rounded-xl border transition-all duration-200 cursor-pointer ${rewardIcon === r
+                    ? 'bg-primary/30 border-primary/50 text-white font-bold'
+                    : 'bg-slate-800 border-white/5 text-slate-400 hover:bg-slate-700 hover:text-white'
+                    }`}
+                >
+                  {r === 'coin' ? '金幣 💰' : '小雞 🐔'}
                 </button>
               ))}
             </div>

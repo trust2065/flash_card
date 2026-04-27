@@ -17,6 +17,9 @@ import { lesson2 } from './data/lesson2';
 function App() {
   const { width, height } = useWindowSize();
   const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1');
+  const [rewardIcon, setRewardIcon] = useState<'coin' | 'chicken'>(() => {
+    return (localStorage.getItem('flashcard-reward-icon') as 'coin' | 'chicken') || 'chicken';
+  });
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -188,6 +191,11 @@ function App() {
           onSelectLesson={setSelectedLesson}
           onCheckUpdate={handleCheckUpdate}
           onSyncCloud={sr.syncFromCloud}
+          rewardIcon={rewardIcon}
+          onSelectReward={(r) => {
+            setRewardIcon(r);
+            localStorage.setItem('flashcard-reward-icon', r);
+          }}
         />
       )}
 
@@ -249,7 +257,7 @@ function App() {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
         )}
       </button>
-      <CoinAnimation />
+      <CoinAnimation type={rewardIcon} />
 
       {(sr.showMaxLevelReward || showTestConfetti) && (
         <div className="pointer-events-none fixed inset-0 z-50">

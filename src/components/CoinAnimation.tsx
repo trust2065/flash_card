@@ -58,10 +58,12 @@ interface Coin {
 
 function SingleCoin({
   coin,
+  type,
   onComplete,
   onDropInBucket
 }: {
   coin: Coin;
+  type: 'coin' | 'chicken';
   onComplete: (id: string) => void;
   onDropInBucket: () => void;
 }) {
@@ -84,19 +86,31 @@ function SingleCoin({
       const bucketWidth = 64;
 
       // 1. 從右邊中間滑入，發光並自轉
-      await controls.start({
+      const animationProps: any = {
         x: [startX, midX, midX, midX],
         y: [startY, midY, midY, midY],
         rotateY: [0, 360, 720, 1080],
         scale: [0.5, 1.2, 1.2, 1],
-        boxShadow: [
+        transition: { duration: 1.5, ease: "easeOut" }
+      };
+
+      if (type === 'coin') {
+        animationProps.boxShadow = [
           'inset 0 0 8px rgba(218, 165, 32, 0.8), 0 4px 6px rgba(0,0,0,0.3)',
           'inset 0 0 15px rgba(255, 215, 0, 1), 0 0 20px 10px rgba(255, 215, 0, 0.6)',
           'inset 0 0 15px rgba(255, 215, 0, 1), 0 0 30px 15px rgba(255, 215, 0, 0.8)',
           'inset 0 0 8px rgba(218, 165, 32, 0.8), 0 4px 6px rgba(0,0,0,0.3)',
-        ],
-        transition: { duration: 1.5, ease: "easeOut" }
-      });
+        ];
+      } else {
+        animationProps.filter = [
+          'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
+          'drop-shadow(0 0 20px rgba(255, 215, 0, 0.6))',
+          'drop-shadow(0 0 30px rgba(255, 215, 0, 0.8))',
+          'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
+        ];
+      }
+
+      await controls.start(animationProps);
 
       if (!isMounted) return;
 
@@ -125,9 +139,16 @@ function SingleCoin({
 
     runAnimation();
     return () => { isMounted = false; };
-  }, [coin.id, coin.offsetX, coin.offsetY, coin.dropDelay, controls, onComplete, onDropInBucket]);
+  }, [coin.id, coin.offsetX, coin.offsetY, coin.dropDelay, controls, onComplete, onDropInBucket, type]);
 
-  return (
+  return type === 'chicken' ? (
+    <motion.img
+      src="/chicken.png"
+      animate={controls}
+      initial={{ y: window.innerHeight * 0.4 + coin.offsetY, x: window.innerWidth + 50 }}
+      className="absolute w-12 h-12 object-contain z-[95]"
+    />
+  ) : (
     <motion.div
       animate={controls}
       initial={{ y: window.innerHeight * 0.4 + coin.offsetY, x: window.innerWidth + 50 }}
@@ -144,7 +165,7 @@ function SingleCoin({
   );
 }
 
-export function CoinAnimation() {
+export function CoinAnimation({ type = 'chicken' }: { type?: 'coin' | 'chicken' }) {
   const [coins, setCoins] = useState<Coin[]>([]);
   const [bucketShake, setBucketShake] = useState(false);
 
@@ -194,6 +215,7 @@ export function CoinAnimation() {
           <SingleCoin
             key={coin.id}
             coin={coin}
+            type={type}
             onComplete={(id) => setCoins(prev => prev.filter(c => c.id !== id))}
             onDropInBucket={handleDropInBucket}
           />
@@ -206,7 +228,7 @@ export function CoinAnimation() {
           transition={{ duration: 0.2 }}
         >
           <div className="absolute -top-2 left-0 w-full h-4 bg-[#3a1d07] rounded-full"></div>
-          <span className="text-2xl opacity-60 relative z-10 mt-2">💰</span>
+          <span className="text-2xl opacity-60 relative z-10 mt-2">{type === 'chicken' ? '🐔' : '💰'}</span>
         </motion.div>
       </div>
 
