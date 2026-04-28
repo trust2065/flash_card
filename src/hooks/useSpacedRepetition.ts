@@ -264,6 +264,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     showMaxLevelReward,
     setShowMaxLevelReward,
     masteredChar,
+    setMasteredChar,
     answer,
     restart,
     resetData,

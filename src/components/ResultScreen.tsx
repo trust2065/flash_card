@@ -1,18 +1,18 @@
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 
 interface ResultScreenProps {
   stats: {
-    known: number
-    unknown: number
-  }
-  onRestart: () => void
+    known: number;
+    unknown: number;
+  };
+  onRestart: () => void;
 }
 
 export function ResultScreen({ stats, onRestart }: ResultScreenProps) {
-  const total = stats.known + stats.unknown
-  const accuracy = total > 0 ? Math.round((stats.known / total) * 100) : 0
-  const starsCount = accuracy > 90 ? 3 : accuracy > 60 ? 2 : 1
-  const allMastered = total === 0
+  const total = stats.known + stats.unknown;
+  const accuracy = total > 0 ? Math.round((stats.known / total) * 100) : 0;
+  const starsCount = accuracy > 90 ? 3 : accuracy > 60 ? 2 : 1;
+  const allMastered = total === 0;
 
   return (
     <div className="grow w-full max-w-[600px] flex flex-col items-center justify-center p-12 gap-8 text-center">
@@ -92,7 +92,7 @@ export function ResultScreen({ stats, onRestart }: ResultScreenProps) {
       )}
 
       {/* allMastered 詞時的附加說明 */}
-      {allMastered && (
+      {allMastered ? (
         <motion.p
           className="text-fg/50 text-base"
           initial={{ opacity: 0 }}
@@ -101,10 +101,7 @@ export function ResultScreen({ stats, onRestart }: ResultScreenProps) {
         >
           所有字已經掌握，12 小時後再回來練習吧！
         </motion.p>
-      )}
-
-      {/* Restart */}
-      <motion.button
+      ) : <motion.button
         className="mt-12 h-16 px-12 rounded-full bg-primary text-white text-2xl font-extrabold font-ui border-0 cursor-pointer transition-transform duration-200 active:scale-[0.92]"
         style={{ boxShadow: '0 8px 32px rgba(124,106,255,0.35)' }}
         onClick={onRestart}
@@ -113,7 +110,7 @@ export function ResultScreen({ stats, onRestart }: ResultScreenProps) {
         transition={{ delay: 1.5 }}
       >
         再玩一次
-      </motion.button>
+      </motion.button>}
     </div>
-  )
+  );
 }

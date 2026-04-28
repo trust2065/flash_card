@@ -233,6 +233,15 @@ function App() {
           測試彩屑
         </button>
         <button
+          onClick={() => {
+            sr.setMasteredChar('測');
+            sr.setShowMaxLevelReward(true);
+          }}
+          className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
+        >
+          測試滿級
+        </button>
+        <button
           onClick={() => setShowResetModal(true)}
           className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
         >
@@ -304,7 +313,7 @@ function App() {
                 <span
                   className="font-char font-black leading-none"
                   style={{
-                    fontSize: 160,
+                    fontSize: 200,
                     textShadow: '0 4px 32px rgba(124,106,255,0.7)',
                   }}
                 >
