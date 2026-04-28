@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { Character } from '../data/lesson1'
 import { supabase } from '../lib/supabase'
 
@@ -36,7 +36,9 @@ function saveLocalStore(userId: string, store: SRStore) {
   localStorage.setItem(getStorageKey(userId), JSON.stringify(store))
 }
 
-function buildQueue(store: SRStore, cards: Character[]): Character[] {
+function buildQueue(store: SRStore, cards: Character[], caller = 'unknown'): Character[] {
+  console.log(`[SR] buildQueue called by: ${caller}`)
+  console.trace()
   const queue: Character[] = []
   for (const card of cards) {
     const state = store[card.char] ?? { bucket: 0, lastSeen: 0 }
@@ -66,17 +68,32 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
   // Only show loading spinner if cloud is configured
   const [isLoading, setIsLoading] = useState(isCloudEnabled)
   const [store, setStore] = useState<SRStore>(() => (isCloudEnabled ? {} : loadLocalStore(userId)))
-  const [queue, setQueue] = useState<Character[]>(() =>
-    isCloudEnabled ? [] : buildQueue(loadLocalStore(userId), cards),
-  )
+  const [queue, setQueue] = useState<Character[]>(() => {
+    console.log('[SR] useState initializer: building queue')
+    return isCloudEnabled ? [] : buildQueue(loadLocalStore(userId), cards, 'useState-init')
+  })
   const [index, setIndex] = useState(0)
   const [stats, setStats] = useState<SRStats>({ known: 0, unknown: 0, total: 0 })
   const [streak, setStreak] = useState(0)
   const [showMaxLevelReward, setShowMaxLevelReward] = useState(false)
   const [masteredChar, setMasteredChar] = useState<string | null>(null)
+  // 追蹤前一次的 userId/cards，只在「真的改變」時才重建
+  const prevUserId = useRef(userId)
+  const prevCards = useRef(cards)
 
-  // 當 userId 改變時，重新初始化 state
+  // 當 userId / cards 改變時，重新初始化 state
   useEffect(() => {
+    const userChanged = prevUserId.current !== userId
+    const cardsChanged = prevCards.current !== cards
+    prevUserId.current = userId
+    prevCards.current = cards
+
+    // StrictMode 會 double-invoke effects，但值沒變 → 跳過
+    if (!userChanged && !cardsChanged) {
+      console.log('[SR] [userId,cards] effect: same values, skip (StrictMode double-invoke?)')
+      return
+    }
+    console.log('[SR] [userId,cards] effect: rebuilding (userId or cards changed)')
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
@@ -84,14 +101,13 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     setMasteredChar(null)
 
     if (!isCloudEnabled) {
-      // 雲端模式由下面的 [loadFromCloud] effect 處理
       const local = loadLocalStore(userId)
       setStore(local)
-      setQueue(buildQueue(local, cards))
+      setQueue(buildQueue(local, cards, '[userId,cards]-effect'))
     }
   }, [userId, cards])
 
-  const loadFromCloud = useCallback(async (rebuildQueue: boolean = false) => {
+  const loadFromCloud = useCallback(async (rebuildQueue: boolean = false, signal?: { cancelled: boolean }) => {
     if (!supabase) return
     setIsLoading(true)
     try {
@@ -101,6 +117,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
         .eq('user_id', userId)
 
       if (error) throw error
+      if (signal?.cancelled) return  // 效果已被取消
 
       const nextStore: SRStore = {}
       ;(data as unknown as ProgressRow[])?.forEach((row) => {
@@ -115,6 +132,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
         setQueue(buildQueue(nextStore, cards))
       }
     } catch (err) {
+      if (signal?.cancelled) return
       console.warn('Cloud load failed, falling back to localStorage:', err)
       const local = loadLocalStore(userId)
       setStore(local)
@@ -122,25 +140,32 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
         setQueue(buildQueue(local, cards))
       }
     } finally {
-      setIsLoading(false)
+      if (!signal?.cancelled) setIsLoading(false)
     }
   }, [userId, cards])
 
   useEffect(() => {
     if (!isCloudEnabled) return
+    const signal = { cancelled: false }
+    console.log('[SR] [loadFromCloud] effect: starting')
 
-    loadFromCloud(true) // Initial load should build the queue
+    loadFromCloud(true, signal)
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        loadFromCloud(false) // Background sync shouldn't disrupt active session
+      if (document.visibilityState === 'visible' && !signal.cancelled) {
+        console.log('[SR] visibilitychange: calling loadFromCloud(false)')
+        loadFromCloud(false, signal)
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      signal.cancelled = true
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [loadFromCloud])
 
   const current = queue[index] ?? null
+  console.log(`[SR] render: index=${index}, queue.len=${queue.length}, current=${current?.char ?? 'null'}, isLoading=${isLoading}`)
   // Finished if: went through all cards, OR queue is empty (all mastered recently)
   const isFinished = !isLoading && (index >= queue.length)
 
@@ -200,7 +225,8 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
   )
 
   const restart = useCallback(() => {
-    setQueue(buildQueue(store, cards))
+    console.log('[SR] restart() called')
+    setQueue(buildQueue(store, cards, 'restart'))
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)

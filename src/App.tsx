@@ -76,8 +76,15 @@ function App() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // 切換課程時自動重置 queue
+  // 切換課程時自動重置 queue（比對前一個值，才能抵抗 StrictMode double-invoke）
+  const prevLesson = useRef(selectedLesson);
   useEffect(() => {
+    if (prevLesson.current === selectedLesson) {
+      console.log('[App] [selectedLesson] effect: same value, skip');
+      return;
+    }
+    prevLesson.current = selectedLesson;
+    console.log('[App] [selectedLesson] effect: calling sr.restart()');
     sr.restart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLesson]);
