@@ -14,6 +14,8 @@ import { UserSelection, USERS, type User } from './components/UserSelection';
 import { lesson1 } from './data/lesson1';
 import { lesson2 } from './data/lesson2';
 
+const OVERLAY_DURATION = 2000; // 模糊與彩屑顯示的持續時間
+
 function App() {
   const { width, height } = useWindowSize();
   const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1');
@@ -95,6 +97,7 @@ function App() {
   // 監聽連續答對與升級狀態來觸發金幣動畫
   useEffect(() => {
     let coinCount = 0;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     // 1. 處理連續答對獎勵
     if (sr.streak > 0 && sr.streak !== lastRewardedStreakRef.current) {
@@ -110,11 +113,18 @@ function App() {
 
     // 2. 處理滿級獎勵（僅放彩屑，不再發放金幣避免與連續答對混淆）
     if (sr.showMaxLevelReward) {
+      timeoutId = setTimeout(() => {
+        sr.setShowMaxLevelReward(false);
+      }, OVERLAY_DURATION);
     }
 
     if (coinCount > 0) {
       (window as any).testCoins?.(coinCount);
     }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [sr.streak, sr.showMaxLevelReward, sr.setShowMaxLevelReward]);
 
   const toggleFullscreen = async () => {
@@ -216,7 +226,7 @@ function App() {
         <button
           onClick={() => {
             setShowTestConfetti(true);
-            setTimeout(() => setShowTestConfetti(false), 8000);
+            setTimeout(() => setShowTestConfetti(false), OVERLAY_DURATION);
           }}
           className="px-4 py-2 text-[0.8rem] bg-white/5 border border-white/10 rounded-lg text-[#a0a0a0] transition-all duration-200 hover:bg-white/10 hover:text-white cursor-pointer whitespace-nowrap"
         >
