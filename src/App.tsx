@@ -1,5 +1,5 @@
 /// <reference types="vite-plugin-pwa/client" />
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
@@ -34,10 +34,12 @@ function App() {
     }
   });
 
-  const cards =
-    selectedLesson === '1' ? lesson1
+  const cards = useMemo(
+    () => selectedLesson === '1' ? lesson1
       : selectedLesson === '2' ? lesson2
-        : [...lesson1, ...lesson2];
+        : [...lesson1, ...lesson2],
+    [selectedLesson]
+  );
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const savedId = localStorage.getItem('flashcard-current-user');
@@ -262,7 +264,13 @@ function App() {
       {(sr.showMaxLevelReward || showTestConfetti) && (
         // 完全阻擋觸控，直到 confetti 結束
         <div className="fixed inset-0 z-[150]" style={{ pointerEvents: 'all' }}>
-          <div className="pointer-events-none fixed inset-0">
+          {/* 下層模糊遺 — 面層在 confetti 下面 */}
+          <div
+            className="absolute inset-0"
+            style={{ backdropFilter: 'blur(6px)', background: 'rgba(10,8,28,0.55)' }}
+          />
+          {/* Confetti 畫布 */}
+          <div className="pointer-events-none absolute inset-0">
             <Confetti
               width={width}
               height={height}
@@ -275,18 +283,18 @@ function App() {
           {sr.masteredChar && !showTestConfetti && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="flex flex-col items-center gap-4 px-12 py-10 rounded-[32px] text-white"
-                style={{
-                  background: 'rgba(20,16,40,0.82)',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 8px 48px rgba(124,106,255,0.45)',
-                  border: '1px solid rgba(124,106,255,0.3)',
-                }}
+                className="flex flex-col items-center gap-3"
               >
-                <span className="text-[80px] leading-none font-char font-black" style={{ textShadow: '0 4px 24px rgba(124,106,255,0.6)' }}>
+                <span
+                  className="font-char font-black leading-none"
+                  style={{
+                    fontSize: 160,
+                    textShadow: '0 4px 32px rgba(124,106,255,0.7)',
+                  }}
+                >
                   {sr.masteredChar}
                 </span>
-                <span className="text-lg font-bold text-white/70 tracking-widest">🎉 完全掌握！</span>
+                <span style={{ fontSize: 72, lineHeight: 1 }}>🎉</span>
               </div>
             </div>
           )}

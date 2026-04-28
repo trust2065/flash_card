@@ -75,17 +75,16 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
   const [showMaxLevelReward, setShowMaxLevelReward] = useState(false)
   const [masteredChar, setMasteredChar] = useState<string | null>(null)
 
-  // 當 userId 改變時，重新初始化
+  // 當 userId 改變時，重新初始化 state
   useEffect(() => {
     setIndex(0)
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
     setShowMaxLevelReward(false)
     setMasteredChar(null)
-    
-    if (isCloudEnabled) {
-      loadFromCloud(true)
-    } else {
+
+    if (!isCloudEnabled) {
+      // 雲端模式由下面的 [loadFromCloud] effect 處理
       const local = loadLocalStore(userId)
       setStore(local)
       setQueue(buildQueue(local, cards))
@@ -142,8 +141,8 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
   }, [loadFromCloud])
 
   const current = queue[index] ?? null
-  // Only finished if queue actually has cards and we've gone through them all
-  const isFinished = !isLoading && queue.length > 0 && index >= queue.length
+  // Finished if: went through all cards, OR queue is empty (all mastered recently)
+  const isFinished = !isLoading && (index >= queue.length)
 
   const answer = useCallback(
     async (known: boolean) => {
