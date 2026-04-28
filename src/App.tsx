@@ -106,7 +106,7 @@ function App() {
       // 3 秒後自動隱藏 Confetti
       timeoutId = setTimeout(() => {
         sr.setShowMaxLevelReward(false);
-      }, 3000);
+      }, 4000);
     }
 
     if (coinCount > 0) {
@@ -260,14 +260,36 @@ function App() {
       <CoinAnimation type={rewardIcon} />
 
       {(sr.showMaxLevelReward || showTestConfetti) && (
-        <div className="pointer-events-none fixed inset-0 z-50">
-          <Confetti
-            width={width}
-            height={height}
-            recycle={false}
-            numberOfPieces={200}
-            gravity={0.15}
-          />
+        // 完全阻擋觸控，直到 confetti 結束
+        <div className="fixed inset-0 z-[150]" style={{ pointerEvents: 'all' }}>
+          <div className="pointer-events-none fixed inset-0">
+            <Confetti
+              width={width}
+              height={height}
+              recycle={false}
+              numberOfPieces={200}
+              gravity={0.15}
+            />
+          </div>
+          {/* 顯示哪個字達到滿級 */}
+          {sr.masteredChar && !showTestConfetti && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="flex flex-col items-center gap-4 px-12 py-10 rounded-[32px] text-white"
+                style={{
+                  background: 'rgba(20,16,40,0.82)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 8px 48px rgba(124,106,255,0.45)',
+                  border: '1px solid rgba(124,106,255,0.3)',
+                }}
+              >
+                <span className="text-[80px] leading-none font-char font-black" style={{ textShadow: '0 4px 24px rgba(124,106,255,0.6)' }}>
+                  {sr.masteredChar}
+                </span>
+                <span className="text-lg font-bold text-white/70 tracking-widest">🎉 完全掌握！</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

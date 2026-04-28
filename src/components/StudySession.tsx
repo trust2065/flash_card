@@ -7,12 +7,13 @@ interface StudySessionProps {
 }
 
 export function StudySession({ sr, onFinish }: StudySessionProps) {
+  if (sr.isLoading) return null;
   if (sr.isFinished || !sr.current) {
     onFinish();
     return null;
   }
 
-  const { current, answer, queueLength, stats } = sr;
+  const { current, answer, queueLength, stats, streak } = sr;
   const currentIndex = stats.total;
   const progress = (currentIndex / queueLength) * 100;
 
@@ -39,6 +40,33 @@ export function StudySession({ sr, onFinish }: StudySessionProps) {
       {/* Card */}
       <div className="grow flex items-center justify-center">
         <FlashCard key={current.char} card={current} />
+      </div>
+
+      {/* Streak */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="transition-all duration-300"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: i < (streak % 5 || (streak > 0 && streak % 5 === 0 ? 5 : 0))
+                ? 'linear-gradient(135deg, #7c6aff, #ff6b9d)'
+                : 'rgba(255,255,255,0.07)',
+              boxShadow: i < (streak % 5 || (streak > 0 && streak % 5 === 0 ? 5 : 0))
+                ? '0 2px 12px rgba(124,106,255,0.5)'
+                : 'none',
+              transform: i < (streak % 5 || (streak > 0 && streak % 5 === 0 ? 5 : 0)) ? 'scale(1.1)' : 'scale(1)',
+            }}
+          />
+        ))}
+        {streak > 0 && (
+          <span className="text-xs font-bold text-fg/50 ml-1">
+            🔥 {streak}
+          </span>
+        )}
       </div>
 
       {/* Controls */}

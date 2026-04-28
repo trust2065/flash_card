@@ -73,6 +73,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
   const [stats, setStats] = useState<SRStats>({ known: 0, unknown: 0, total: 0 })
   const [streak, setStreak] = useState(0)
   const [showMaxLevelReward, setShowMaxLevelReward] = useState(false)
+  const [masteredChar, setMasteredChar] = useState<string | null>(null)
 
   // 當 userId 改變時，重新初始化
   useEffect(() => {
@@ -80,6 +81,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
     setShowMaxLevelReward(false)
+    setMasteredChar(null)
     
     if (isCloudEnabled) {
       loadFromCloud(true)
@@ -155,12 +157,15 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
         setStreak((s) => s + 1)
         if (state.bucket < MAX_BUCKET && newBucket === MAX_BUCKET) {
           setShowMaxLevelReward(true)
+          setMasteredChar(current.char)
         } else {
           setShowMaxLevelReward(false)
+          setMasteredChar(null)
         }
       } else {
         setStreak(0)
         setShowMaxLevelReward(false)
+        setMasteredChar(null)
       }
 
       if (supabase) {
@@ -201,6 +206,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
     setShowMaxLevelReward(false)
+    setMasteredChar(null)
   }, [store, cards])
 
   const resetData = useCallback(async () => {
@@ -218,6 +224,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     setStats({ known: 0, unknown: 0, total: 0 })
     setStreak(0)
     setShowMaxLevelReward(false)
+    setMasteredChar(null)
   }, [cards])
 
   const getBucket = useCallback((char: string) => store[char]?.bucket ?? 0, [store])
@@ -231,6 +238,7 @@ export function useSpacedRepetition(userId: string, cards: Character[]) {
     streak,
     showMaxLevelReward,
     setShowMaxLevelReward,
+    masteredChar,
     answer,
     restart,
     resetData,
