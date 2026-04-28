@@ -28,8 +28,8 @@ function App() {
     onRegistered(r) {
       if (r) {
         setInterval(() => {
-          r.update()
-        }, 60 * 60 * 1000) // 每小時檢查更新
+          r.update();
+        }, 60 * 60 * 1000); // 每小時檢查更新
       }
     }
   });
@@ -108,23 +108,13 @@ function App() {
       lastRewardedStreakRef.current = 0;
     }
 
-    let timeoutId: ReturnType<typeof setTimeout>;
-
     // 2. 處理滿級獎勵（僅放彩屑，不再發放金幣避免與連續答對混淆）
     if (sr.showMaxLevelReward) {
-      // 3 秒後自動隱藏 Confetti
-      timeoutId = setTimeout(() => {
-        sr.setShowMaxLevelReward(false);
-      }, 4000);
     }
 
     if (coinCount > 0) {
-      ; (window as any).testCoins?.(coinCount);
+      (window as any).testCoins?.(coinCount);
     }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
   }, [sr.streak, sr.showMaxLevelReward, sr.setShowMaxLevelReward]);
 
   const toggleFullscreen = async () => {
@@ -282,15 +272,24 @@ function App() {
               width={width}
               height={height}
               recycle={false}
-              numberOfPieces={200}
-              gravity={0.15}
+              numberOfPieces={300}
+              confettiSource={{
+                x: width / 2,
+                y: -10,
+                w: 10,
+                h: 10
+              }}
+              initialVelocityX={10}
+              initialVelocityY={20}
+              gravity={.5}
+              tweenDuration={500}
             />
           </div>
           {/* 顯示哪個字達到滿級 */}
           {sr.masteredChar && !showTestConfetti && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="flex flex-col items-center gap-3"
+                className="flex flex-col items-center gap-5"
               >
                 <span
                   className="font-char font-black leading-none"
@@ -301,7 +300,6 @@ function App() {
                 >
                   {sr.masteredChar}
                 </span>
-                <span style={{ fontSize: 72, lineHeight: 1 }}>🎉</span>
               </div>
             </div>
           )}
