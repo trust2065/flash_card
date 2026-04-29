@@ -6,6 +6,56 @@ interface CardDetailsProps {
   onClose?: () => void;
 }
 
+function parseZhuyin(raw: string): { symbols: string; tone: string; } {
+  const tones = ['ˊ', 'ˇ', 'ˋ', '˙'];
+  const tone = tones.find(t => raw.includes(t)) || '';
+  const symbols = raw.replace(new RegExp(`[ˊˇˋ˙]`, 'g'), '').trim();
+  return { symbols, tone };
+}
+
+function ZhuyinBlock({ zhuyin }: { zhuyin: string; }) {
+  const { symbols, tone } = parseZhuyin(zhuyin);
+  return (
+    <div className="flex items-center">
+      <div className="flex flex-col items-center justify-center">
+        {symbols.split('').map((s, i) => (
+          <span key={i} className="text-[26px] font-normal text-accent leading-[1.1]">
+            {s}
+          </span>
+        ))}
+      </div>
+      {tone && tone !== '˙' && (
+        <div className="flex items-center self-stretch ml-[2px]">
+          <span className="text-[22px] font-normal text-accent leading-none translate-y-[20%]">
+            {tone}
+          </span>
+        </div>
+      )}
+      {tone === '˙' && (
+        <span className="text-[22px] font-normal text-accent self-start ml-[2px] leading-none">
+          ˙
+        </span>
+      )}
+    </div>
+  );
+}
+
+function CharWithZhuyin({ char, zhuyin }: { char: string; zhuyin: string; }) {
+  const chars = [...char];
+  const zhuyins = zhuyin.split(' ');
+
+  return (
+    <div className="flex items-stretch gap-4 mb-4">
+      {chars.map((c, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="font-char text-[80px] font-bold leading-none text-primary">{c}</span>
+          <ZhuyinBlock zhuyin={zhuyins[i] ?? ''} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function CardDetails({ card, onClose }: CardDetailsProps) {
   return (
     <>
@@ -23,9 +73,6 @@ export function CardDetails({ card, onClose }: CardDetailsProps) {
         className={`flex justify-between items-center mb-8 pb-3 ${onClose ? 'pr-10' : ''}`}
         style={{ borderBottom: '2px dashed rgba(255,255,255,0.1)' }}
       >
-        <span className="font-char text-[72px] font-bold leading-none text-primary">
-          {card.char}
-        </span>
         <button
           className="w-16 h-16 rounded-[28px] bg-primary text-white flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer shrink-0"
           style={{ boxShadow: '0 8px 24px rgba(124,106,255,0.35)' }}
@@ -40,11 +87,7 @@ export function CardDetails({ card, onClose }: CardDetailsProps) {
 
       {/* Details */}
       <div className="flex flex-col gap-5">
-        <div className="flex items-center text-2xl">
-          <span className="font-semibold text-fg/50 w-[60px] text-lg shrink-0">注音</span>
-          <span className="font-bold text-fg grow font-char text-accent tracking-[4px]">{card.zhuyin}</span>
-        </div>
-
+        <CharWithZhuyin char={card.char} zhuyin={card.zhuyin} />
         <div className="flex items-center text-2xl">
           <span className="font-semibold text-fg/50 w-[60px] text-lg shrink-0">詞語</span>
           <span className="font-bold text-success grow flex items-center">{card.example}</span>

@@ -89,7 +89,7 @@ export function StudySession({ sr, onFinish }: StudySessionProps) {
           onClick={() => answer(true)}
           aria-label="認識"
         >
-          <span className="text-[28px]">💡</span>
+          <span className="text-[28px]">👍</span>
           <span>認識</span>
         </button>
       </div>

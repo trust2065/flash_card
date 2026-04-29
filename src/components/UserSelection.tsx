@@ -19,7 +19,7 @@ export const UserSelection: React.FC<UserSelectionProps> = ({ onSelect }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a] text-white">
       <div className="flex flex-col items-center gap-8">
-        <h1 className="text-3xl font-bold text-slate-200">請問你是哪一位？</h1>
+        <h1 className="text-3xl font-bold text-slate-200">你是？</h1>
         <div className="flex gap-6">
           {USERS.map((user) => (
             <button
