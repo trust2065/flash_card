@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { Character } from '../data/lesson1';
 import type { SRStore } from '../hooks/useSpacedRepetition';
 import { playAudio } from '../utils/audio';
+import { CardDetails } from './CardDetails';
 
 interface Props {
   store: SRStore;
@@ -52,6 +54,8 @@ function CircleProgress({ bucket, char, zhuyin }: { bucket: number; char: string
 }
 
 export function ProgressScreen({ store, cards, onClose }: Props) {
+  const [selectedCard, setSelectedCard] = useState<Character | null>(null);
+
   const total = cards.length;
   const mastered = cards.filter((c) => (store[c.char]?.bucket ?? 0) >= MAX_BUCKET).length;
   const learning = cards.filter((c) => {
@@ -115,7 +119,10 @@ export function ProgressScreen({ store, cards, onClose }: Props) {
           return (
             <div
               key={card.char}
-              onClick={() => playAudio(card.char)}
+              onClick={() => {
+                setSelectedCard(card);
+                playAudio(card.char);
+              }}
               className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-[20px] transition-transform duration-150 cursor-pointer border ${isMastered
                   ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:-translate-y-1 hover:shadow-lg shadow-black/20'
                   : 'border-white/[0.07] bg-white/[0.03] hover:bg-white/5 hover:-translate-y-1 hover:shadow-lg shadow-black/20'
@@ -132,6 +139,25 @@ export function ProgressScreen({ store, cards, onClose }: Props) {
           );
         })}
       </div>
+
+      {/* Card Info Modal */}
+      {selectedCard && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+          onClick={() => setSelectedCard(null)}
+        >
+          <div 
+            className="w-full max-w-[480px] bg-[#231f3a] rounded-[40px] p-8 flex flex-col relative animate-in fade-in zoom-in-95 duration-200"
+            style={{ 
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              border: '1px solid rgba(255,255,255,0.08)' 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardDetails card={selectedCard} onClose={() => setSelectedCard(null)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
