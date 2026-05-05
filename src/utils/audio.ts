@@ -3,6 +3,6 @@ export const playAudio = (text: string) => {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'zh-TW';
-  utterance.rate = 1;
+  utterance.rate = .3;
   window.speechSynthesis.speak(utterance);
 };
