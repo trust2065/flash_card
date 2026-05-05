@@ -5,8 +5,8 @@ interface SettingsModalProps {
   onClose: () => void;
   onSwitchUser: () => void;
   onShowProgress: () => void;
-  selectedLesson: '1' | '2' | 'all';
-  onSelectLesson: (lesson: '1' | '2' | 'all') => void;
+  selectedLesson: '1' | '2' | '3' | 'all';
+  onSelectLesson: (lesson: '1' | '2' | '3' | 'all') => void;
   onCheckUpdate: () => void;
   onSyncCloud: () => void;
   rewardIcon: 'coin' | 'chicken';
@@ -63,7 +63,7 @@ export function SettingsModal({
           <div className="space-y-2">
             <div className="text-sm font-medium text-slate-400">選擇範圍</div>
             <div className="flex gap-2">
-              {(['1', '2', 'all'] as const).map((l) => (
+              {(['1', '2', '3', 'all'] as const).map((l) => (
                 <button
                   key={l}
                   onClick={() => onSelectLesson(l)}
@@ -72,7 +72,7 @@ export function SettingsModal({
                     : 'bg-slate-800 border-white/5 text-slate-400 hover:bg-slate-700 hover:text-white'
                     }`}
                 >
-                  {l === 'all' ? '全部' : `第${l === '1' ? '一' : '二'}課`}
+                  {l === 'all' ? '全部' : `第${{ '1': '一', '2': '二', '3': '三' }[l]}課`}
                 </button>
               ))}
             </div>

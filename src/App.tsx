@@ -13,12 +13,13 @@ import { CoinAnimation } from './components/CoinAnimation';
 import { UserSelection, USERS, type User } from './components/UserSelection';
 import { lesson1 } from './data/lesson1';
 import { lesson2 } from './data/lesson2';
+import { lesson3 } from './data/lesson3';
 
 const OVERLAY_DURATION = 2000; // 模糊與彩屑顯示的持續時間
 
 function App() {
   const { width, height } = useWindowSize();
-  const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | 'all'>('1');
+  const [selectedLesson, setSelectedLesson] = useState<'1' | '2' | '3' | 'all'>('1');
   const [rewardIcon, setRewardIcon] = useState<'coin' | 'chicken'>(() => {
     return (localStorage.getItem('flashcard-reward-icon') as 'coin' | 'chicken') || 'chicken';
   });
@@ -39,7 +40,8 @@ function App() {
   const cards = useMemo(
     () => selectedLesson === '1' ? lesson1
       : selectedLesson === '2' ? lesson2
-        : [...lesson1, ...lesson2],
+        : selectedLesson === '3' ? lesson3
+          : [...lesson1, ...lesson2, ...lesson3],
     [selectedLesson]
   );
 
@@ -197,7 +199,7 @@ function App() {
           }}
           onShowProgress={() => setShowProgress(true)}
           selectedLesson={selectedLesson}
-          onSelectLesson={setSelectedLesson}
+          onSelectLesson={setSelectedLesson as (l: '1' | '2' | '3' | 'all') => void}
           onCheckUpdate={handleCheckUpdate}
           onSyncCloud={sr.syncFromCloud}
           rewardIcon={rewardIcon}
