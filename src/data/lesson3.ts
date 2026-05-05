@@ -3,7 +3,7 @@ import type { Character } from './lesson1'
 export const lesson3: Character[] = [
   { char: '秋', zhuyin: 'ㄑㄧㄡ', pinyin: 'qiū', example: '秋天', meaning: '四季之一，夏之後、冬之前' },
   { char: '千', zhuyin: 'ㄑㄧㄢ', pinyin: 'qiān', example: '一千', meaning: '數字，十的百倍' },
-  { char: '和', zhuyin: 'ㄏㄜˊ', pinyin: 'hé', example: '你和我', meaning: '連接詞，表示並列關係' },
+  { char: '和', zhuyin: 'ㄏㄢˋ', pinyin: 'hàn', example: '你和我', meaning: '連接詞，表示並列關係' },
   { char: '玩', zhuyin: 'ㄨㄢˊ', pinyin: 'wán', example: '玩耍', meaning: '遊戲、嬉戲' },
   { char: '陪', zhuyin: 'ㄆㄟˊ', pinyin: 'péi', example: '陪伴', meaning: '在旁邊伴隨' },
   { char: '高', zhuyin: 'ㄍㄠ', pinyin: 'gāo', example: '高山', meaning: '距離地面遠，與「低」相對' },
