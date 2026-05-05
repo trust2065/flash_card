@@ -3,49 +3,62 @@ import { motion, useAnimation } from 'framer-motion';
 
 // 使用 Web Audio API 來達成零延遲、完美的重疊播放
 let audioCtx: AudioContext | null = null;
-let coinBuffer: AudioBuffer | null = null;
-let fetchPromise: Promise<void> | null = null;
+const bufferMap = new Map<string, AudioBuffer>();
+const fetchPromises = new Map<string, Promise<void>>();
 
-// 預先載入音檔
-export async function initCoinAudio() {
-  if (typeof window === 'undefined') return;
+const CHICKEN_AUDIO_FILES: Record<number, string> = {
+  1: '/chicken_1.mp3',
+  3: '/chicken_3.mp3',
+};
+
+async function getAudioCtx(): Promise<AudioContext> {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
   if (audioCtx.state === 'suspended') {
     await audioCtx.resume();
   }
-  if (!coinBuffer) {
-    if (!fetchPromise) {
-      fetchPromise = (async () => {
-        try {
-          const response = await fetch('/coin_new.wav');
-          const arrayBuffer = await response.arrayBuffer();
-          coinBuffer = await audioCtx!.decodeAudioData(arrayBuffer);
-        } catch (e) {
-          console.error("Failed to load audio", e);
-        }
-      })();
-    }
-    await fetchPromise;
-  }
+  return audioCtx;
 }
 
-async function playCoinSound() {
+async function loadBuffer(src: string): Promise<void> {
+  if (bufferMap.has(src)) return;
+  if (!fetchPromises.has(src)) {
+    fetchPromises.set(src, (async () => {
+      try {
+        const ctx = await getAudioCtx();
+        const response = await fetch(src);
+        const arrayBuffer = await response.arrayBuffer();
+        bufferMap.set(src, await ctx.decodeAudioData(arrayBuffer));
+      } catch (e) {
+        console.error(`Failed to load audio: ${src}`, e);
+      }
+    })());
+  }
+  await fetchPromises.get(src);
+}
+
+// 預先載入音檔（可選）
+export async function initCoinAudio() {
   if (typeof window === 'undefined') return;
+  await Promise.all(Object.values(CHICKEN_AUDIO_FILES).map(loadBuffer));
+}
 
-  // 確保初始化完成且如果被 suspend 則喚醒
-  await initCoinAudio();
+async function playCoinSound(count: number) {
+  if (typeof window === 'undefined') return;
+  const src = CHICKEN_AUDIO_FILES[count] ?? CHICKEN_AUDIO_FILES[1];
+  await loadBuffer(src);
 
-  if (!coinBuffer || !audioCtx) return;
+  const ctx = await getAudioCtx();
+  const buffer = bufferMap.get(src);
+  if (!buffer) return;
 
-  const source = audioCtx.createBufferSource();
-  source.buffer = coinBuffer;
-  const gainNode = audioCtx.createGain();
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  const gainNode = ctx.createGain();
   gainNode.gain.value = 0.5;
-
   source.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
+  gainNode.connect(ctx.destination);
   source.start(0);
 }
 
@@ -184,10 +197,14 @@ export function CoinAnimation({ type = 'chicken' }: { type?: 'coin' | 'chicken' 
 
     // 音效在這裡直接排程，不依賴動畫 callback
     // 滑入 1.5s + 各自 dropDelay (i*0.1s) + 掉落動畫 0.5s
+    // 只在最後一顆落桶時播放對應音效（1顆→chicken_1, 3顆→chicken_3）
+    const lastDelay = 1500 + (newCoins.length - 1) * 200 + 500;
+    setTimeout(() => {
+      playCoinSound(count);
+    }, lastDelay);
     newCoins.forEach((_, i) => {
       const delay = 1500 + i * 200 + 500;
       setTimeout(() => {
-        playCoinSound();
         setBucketShake(true);
         setTimeout(() => setBucketShake(false), 200);
       }, delay);
